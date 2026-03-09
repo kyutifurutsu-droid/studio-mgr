@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>配信事務所 管理システム</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0d0d14;
+    --bg2: #13131f;
+    --bg3: #1a1a2e;
+    --panel: #1e1e30;
+    --panel2: #252538;
+    --border: #2e2e48;
+    --border2: #3a3a58;
+    --purple: #7c6ff7;
+    --purple2: #9d93f9;
+    --teal: #2dd4bf;
+    --teal2: #5eead4;
+    --pink: #f472b6;
+    --yellow: #fbbf24;
+    --green: #34d399;
+    --red: #f87171;
+    --text: #e2e2f0;
+    --text2: #9090b0;
+    --text3: #606080;
+    --coin: #fbbf24;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 13px;
+  }
+
+  /* ── ヘッダー ── */
+  .header {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--purple2);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .header-logo span { color: var(--teal); }
+  .header-nav {
+    display: flex;
+    gap: 2px;
+    margin-left: 8px;
+    flex: 1;
+  }
+  .nav-btn {
+    padding: 6px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    border-radius: 6px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .nav-btn:hover { background: var(--panel); color: var(--text); }
+  .nav-btn.active { background: var(--panel2); color: var(--purple2); font-weight: 500; }
+
+  /* ── レイアウト ── */
+  .main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── カード ── */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    width: 3px;
+    height: 14px;
+    background: var(--purple);
+    border-radius: 2px;
+  }
+
+  /* ── グリッド ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* ── スタットカード ── */
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .stat-label { font-size: 11px; color: var(--text3); font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+  .stat-value { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; line-height: 1; }
+  .stat-value.purple { color: var(--purple2); }
+  .stat-value.teal { color: var(--teal); }
+  .stat-value.yellow { color: var(--yellow); }
+  .stat-value.green { color: var(--green); }
+  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  /* ── フォーム ── */
+  .form-row { display: flex; gap: 12px; align-items: flex-end; margin-bottom: 12px; flex-wrap: wrap; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 11px; color: var(--text2); font-weight: 500; letter-spacing: 0.04em; }
+  .form-control {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    padding: 8px 12px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s;
+    min-width: 100px;
+  }
+  .form-control:focus { border-color: var(--purple); }
+  select.form-control { cursor: pointer; }
+
+  /* ── ボタン ── */
+  .btn {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 7px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-primary { background: var(--purple); color: white; }
+  .btn-primary:hover { background: var(--purple2); }
+  .btn-teal { background: var(--teal); color: var(--bg); }
+  .btn-teal:hover { background: var(--teal2); }
+  .btn-danger { background: #3a1a1a; color: var(--red); border: 1px solid #5a2a2a; }
+  .btn-danger:hover { background: #4a2020; }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--purple); color: var(--purple2); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* ── テーブル ── */
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--bg3);
+    color: var(--text2);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  th:first-child { text-align: left; }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    text-align: right;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+  }
+  td:first-child { text-align: left; font-family: 'Noto Sans JP', sans-serif; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--panel2); }
+  .total-row td { background: var(--bg3); font-weight: 700; border-top: 1px solid var(--border2); }
+  .total-row td:first-child { color: var(--text2); }
+
+  /* ── バッジ ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+  }
+  .badge-purple { background: rgba(124,111,247,0.2); color: var(--purple2); }
+  .badge-teal { background: rgba(45,212,191,0.15); color: var(--teal2); }
+  .badge-yellow { background: rgba(251,191,36,0.15); color: var(--yellow); }
+  .badge-green { background: rgba(52,211,153,0.15); color: var(--green); }
+  .badge-red { background: rgba(248,113,113,0.15); color: var(--red); }
+  .badge-gray { background: var(--panel2); color: var(--text3); }
+
+  /* ── キャストカード ── */
+  .cast-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .cast-card {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .cast-card:hover { border-color: var(--purple); }
+  .cast-card.selected { border-color: var(--purple); background: rgba(124,111,247,0.08); }
+  .cast-card .cast-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .cast-card .cast-rate { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--teal); }
+  .cast-card .cast-delete {
+    position: absolute; top: 10px; right: 10px;
+    background: none; border: none; color: var(--text3);
+    cursor: pointer; font-size: 14px; padding: 2px 6px;
+    border-radius: 4px; transition: all 0.15s;
+  }
+  .cast-card .cast-delete:hover { background: rgba(248,113,113,0.15); color: var(--red); }
+
+  /* ── 月セレクター ── */
+  .month-tabs {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .month-tab {
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    transition: all 0.12s;
+  }
+  .month-tab:hover { border-color: var(--purple); color: var(--text); }
+  .month-tab.active { background: var(--purple); border-color: var(--purple); color: white; font-weight: 700; }
+  .month-tab.has-data { border-color: var(--border2); color: var(--text); }
+
+  /* ── 入力テーブル ── */
+  .input-table { width: 100%; border-collapse: collapse; }
+  .input-table th {
+    background: var(--bg3);
+    color: var(--text2);
+    font-size: 11px;
+    padding: 8px 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .input-table td {
+    border: 1px solid var(--border);
+    padding: 3px 4px;
+    text-align: center;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+  }
+  .input-table tr:hover td { background: rgba(124,111,247,0.04); }
+  .day-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    padding: 4px 10px;
+    background: var(--bg3);
+    white-space: nowrap;
+  }
+  .day-label.first-half { color: #fbbf24; }
+  .day-label.second-half { color: var(--teal); }
+  .coin-input {
+    background: rgba(124,111,247,0.07);
+    border: 1px solid transparent;
+    border-radius: 5px;
+    color: var(--yellow);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: right;
+    padding: 4px 8px;
+    width: 110px;
+    outline: none;
+    transition: all 0.12s;
+  }
+  .coin-input:focus { border-color: var(--purple); background: rgba(124,111,247,0.12); }
+  .coin-input::placeholder { color: var(--text3); font-weight: 400; font-size: 11px; }
+  .calc-cell {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text2);
+    padding: 4px 8px;
+    white-space: nowrap;
+  }
+  .calc-cell.reward { color: var(--purple2); font-weight: 700; }
+  .calc-cell.studio { color: var(--teal); font-weight: 700; }
+  .shime-badge {
+    font-size: 10px;
+    font-family: 'Space Mono', monospace;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .shime-first { background: rgba(251,191,36,0.12); color: var(--yellow); }
+  .shime-second { background: rgba(45,212,191,0.12); color: var(--teal); }
+
+  /* ── 支払い管理 ── */
+  .payment-section { margin-bottom: 24px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .section-header.first { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.2); color: var(--yellow); }
+  .section-header.second { background: rgba(45,212,191,0.08); border: 1px solid rgba(45,212,191,0.2); color: var(--teal); }
+
+  /* ── トースト ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--panel2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 13px;
+    color: var(--green);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.25s;
+    z-index: 999;
+    pointer-events: none;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── モーダル ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200;
+    display: none;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    padding: 28px;
+    width: 380px;
+    max-width: 90vw;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* ── 集計タブ ── */
+  .summary-cast-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .summary-cast-tab {
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.12s;
+  }
+  .summary-cast-tab.active { background: var(--teal); border-color: var(--teal); color: var(--bg); font-weight: 700; }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* ── エクスポート ── */
+  .export-area { background: var(--bg3); border-radius: 8px; padding: 16px; font-size: 12px; color: var(--text2); line-height: 1.8; }
+
+  /* スクロールバー */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">STUDIO<span>.</span>MGR</div>
+  <nav class="header-nav">
+    <button class="nav-btn active" onclick="showPage('input')">📥 売上入力</button>
+    <button class="nav-btn" onclick="showPage('payment')">💰 支払い管理</button>
+    <button class="nav-btn" onclick="showPage('cast')">👥 キャスト管理</button>
+    <button class="nav-btn" onclick="showPage('summary')">📊 集計レポート</button>
+  </nav>
+</div>
+
+<div class="main">
+
+  <!-- ════════════════ 売上入力 ════════════════ -->
+  <div id="page-input" class="page active">
+    <div style="display:flex; gap:12px; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
+      <h2 style="font-size:18px; font-weight:700;">売上入力</h2>
+      <div style="margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <div class="form-group">
+          <label>キャスト</label>
+          <select class="form-control" id="input-cast-sel" onchange="renderInputTable()"></select>
+        </div>
+        <div class="form-group">
+          <label>月</label>
+          <select class="form-control" id="input-month-sel" onchange="renderInputTable()">
+            <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+            <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+            <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+            <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>報酬率</label>
+          <select class="form-control" id="input-rate-sel" onchange="onRateChange()" style="color:var(--purple2); font-weight:700;">
+            <option value="0.5">50%</option>
+            <option value="0.6">60%</option>
+            <option value="0.7">70%</option>
+            <option value="0.8">80%</option>
+            <option value="0.9">90%</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>前半為替(円/＄)</label>
+          <input type="number" class="form-control" id="input-fx1" value="150" style="width:90px;" oninput="saveFx()">
+        </div>
+        <div class="form-group">
+          <label>後半為替(円/＄)</label>
+          <input type="number" class="form-control" id="input-fx2" value="150" style="width:90px;" oninput="saveFx()">
+        </div>
+      </div>
+    </div>
+
+    <!-- サマリー行 -->
+    <div class="grid-4" style="margin-bottom:16px;" id="input-stats">
+    </div>
+
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div id="input-table-wrap" style="overflow-x:auto;"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════ 支払い管理 ════════════════ -->
+  <div id="page-payment" class="page">
+    <div style="display:flex; gap:12px; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
+      <h2 style="font-size:18px; font-weight:700;">支払い管理</h2>
+      <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+        <div class="form-group">
+          <label>対象月</label>
+          <select class="form-control" id="pay-month-sel" onchange="renderPayment()">
+            <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+            <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+            <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+            <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="payment-content"></div>
+  </div>
+
+  <!-- ════════════════ キャスト管理 ════════════════ -->
+  <div id="page-cast" class="page">
+    <div style="display:flex; gap:12px; align-items:center; margin-bottom:20px;">
+      <h2 style="font-size:18px; font-weight:700;">キャスト管理</h2>
+      <button class="btn btn-primary" style="margin-left:auto;" onclick="openAddCastModal()">＋ キャスト追加</button>
+    </div>
+    <div class="cast-grid" id="cast-grid"></div>
+    <div class="card">
+      <div class="card-title">データインポート</div>
+
+      <!-- キャストCSV取り込み -->
+      <div style="background:rgba(45,212,191,0.06); border:1px solid rgba(45,212,191,0.2); border-radius:8px; padding:14px; margin-bottom:16px;">
+        <div style="font-weight:700; color:var(--teal); font-size:12px; margin-bottom:4px;">📥 キャストからのCSVを取り込む（推奨）</div>
+        <div style="font-size:11px; color:var(--text3); margin-bottom:10px;">キャストが「cast-input.html」で書き出したCSVファイルを取り込みます。コイン数・配信回数・お気に入り増加数が自動反映されます。</div>
+        <div style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;">
+          <div class="form-group" style="flex:1; min-width:200px;">
+            <label>CSVファイル（キャストが送ってきたもの）</label>
+            <input type="file" accept=".csv" class="form-control" id="import-cast-csv">
+          </div>
+          <div>
+            <button class="btn btn-teal btn-sm" onclick="importCastCSV()">取り込む</button>
+          </div>
+        </div>
+        <div id="import-csv-status" style="margin-top:8px; font-size:12px;"></div>
+      </div>
+
+      <!-- Excel取り込み -->
+      <div style="border-top:1px solid var(--border); padding-top:14px;">
+        <div style="font-size:12px; color:var(--text2); margin-bottom:10px;">📂 既存のExcelファイルを取り込む</div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <div class="form-group">
+            <label>キャスト名（インポート先）</label>
+            <select class="form-control" id="import-cast-sel"></select>
+          </div>
+          <div class="form-group">
+            <label>Excelファイル (.xlsx)</label>
+            <input type="file" accept=".xlsx" class="form-control" id="import-file" style="width:auto;">
+          </div>
+          <div style="padding-top:18px;">
+            <button class="btn btn-ghost btn-sm" onclick="importExcel()">インポート</button>
+          </div>
+        </div>
+        <div id="import-status" style="margin-top:10px; font-size:12px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ 集計レポート ════════════════ -->
+  <div id="page-summary" class="page">
+    <div style="display:flex; gap:12px; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
+      <h2 style="font-size:18px; font-weight:700;">集計レポート</h2>
+      <div style="margin-left:auto; display:flex; gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">📤 CSVエクスポート</button>
+      </div>
+    </div>
+
+    <!-- 全体サマリー -->
+    <div class="grid-4" style="margin-bottom:16px;" id="summary-totals"></div>
+
+    <div class="grid-2">
+      <!-- 月別推移 -->
+      <div class="card">
+        <div class="card-title">月別 売上推移（コイン数）</div>
+        <div id="summary-monthly-chart"></div>
+      </div>
+      <!-- キャスト別 -->
+      <div class="card">
+        <div class="card-title">キャスト別 年間集計</div>
+        <div id="summary-cast-table"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">月別 詳細テーブル</div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>キャスト絞り込み</label>
+        <select class="form-control" id="summary-cast-filter" onchange="renderSummaryDetail()" style="width:200px;">
+          <option value="all">全キャスト合計</option>
+        </select>
+      </div>
+      <div class="table-wrap" id="summary-detail-table"></div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ── モーダル ── -->
+<div class="modal-overlay" id="add-cast-modal">
+  <div class="modal">
+    <div class="modal-title">新しいキャストを追加</div>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>キャスト名</label>
+      <input type="text" class="form-control" id="new-cast-name" placeholder="例：さくら" style="width:100%;">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeAddCastModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="addCast()">追加する</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+// データストア（メモリ内）
+// ════════════════════════════════════════
+
+// 初期データ（maoの既存データ）
+const INITIAL_DATA = {
+  casts: [
+    { id: 'mao', name: 'mao' },
+    { id: 'sara', name: 'sara' },
+    { id: 'mia', name: 'mia' }
+  ],
+  records: {
+    // cast_id -> month -> { rewardRate, fx1, fx2, days: { day: coins } }
+    mao: {
+      1: { rewardRate: 0.5, fx1: 150, fx2: 150, days: {4:6466,7:7694,9:9526,10:4901,12:6100,13:3062,15:10046,16:4877,17:13495,18:14981,20:15,21:3697,24:10791,25:11145,27:10611,29:10090,30:10421,31:12763} },
+      2: { rewardRate: 0.8, fx1: 152, fx2: 152, days: {6:2952,7:7044,8:7890,10:7874,12:7504,14:8269,15:14993,17:4008,18:2464,19:7014,21:14352,23:11056,25:6797,26:7424,28:8579} },
+      3: { rewardRate: 0.8, fx1: 147, fx2: 147, days: {1:10513} }
+    },
+    sara: {
+      1: { rewardRate: 0.75, fx1: 154.77, fx2: 154.77, days: {3:10210,5:7391,6:10037,9:24243,11:8404,12:7574,14:20,15:5230,16:9203,17:8037,18:5287,21:7859,22:7270,23:10768,24:22341,25:9695,26:13633,28:6254} },
+      2: { rewardRate: 0.8, fx1: 152.7, fx2: 152.7, days: {7:13906,8:13861,9:5525,10:10276,14:17389,15:1650,16:6892,17:16147,18:9447,20:15490,24:14878,26:1523,27:11859,28:100} }
+    },
+    mia: {
+      1: { rewardRate: 0.5, fx1: 150, fx2: 150, days: {8:13205,9:9115,10:15869,11:11877,14:17424,15:7490,17:18684,18:18614,20:8075,21:8158,23:659,24:10547,25:420} },
+      2: { rewardRate: 0.5, fx1: 147, fx2: 147, days: {28:1660} }
+    }
+  }
+};
+
+let state = JSON.parse(JSON.stringify(INITIAL_DATA));
+
+const COIN_RATE = 0.05; // 1コイン = $0.05
+const MONTH_DAYS = {1:31,2:28,3:31,4:30,5:31,6:30,7:31,8:31,9:30,10:31,11:30,12:31};
+
+// ── ユーティリティ ──
+function fmt(n, type='coin') {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  if (type === 'coin') return n.toLocaleString();
+  if (type === 'jpy') return '¥' + Math.round(n).toLocaleString();
+  if (type === 'usd') return '$' + n.toFixed(2);
+  if (type === 'pct') return (n * 100).toFixed(0) + '%';
+  return n;
+}
+
+function getMonthData(castId, month) {
+  if (!state.records[castId]) state.records[castId] = {};
+  if (!state.records[castId][month]) {
+    state.records[castId][month] = { rewardRate: 0.5, fx1: 150, fx2: 150, days: {} };
+  }
+  return state.records[castId][month];
+}
+
+function calcDay(coins, isFirstHalf, monthData) {
+  if (!coins || coins <= 0) return null;
+  const fx = isFirstHalf ? (monthData.fx1 || 150) : (monthData.fx2 || 150);
+  const usd = coins * COIN_RATE;
+  const jpy = usd * fx;
+  const reward = jpy * monthData.rewardRate;
+  const studio = jpy * (1 - monthData.rewardRate);
+  return { usd, jpy, reward, studio };
+}
+
+function calcMonthSummary(castId, month) {
+  const md = getMonthData(castId, month);
+  let totalCoins=0, totalJpy=0, totalReward=0, totalStudio=0;
+  let firstCoins=0, firstReward=0, secondCoins=0, secondReward=0;
+  let totalStreams=0, totalFavs=0;
+  const days = MONTH_DAYS[month] || 30;
+  for (let d = 1; d <= days; d++) {
+    const coins = md.days[d] || 0;
+    if (!coins) continue;
+    const isFirst = d <= 15;
+    const r = calcDay(coins, isFirst, md);
+    if (!r) continue;
+    totalCoins += coins;
+    totalJpy += r.jpy;
+    totalReward += r.reward;
+    totalStudio += r.studio;
+    if (isFirst) { firstCoins += coins; firstReward += r.reward; }
+    else { secondCoins += coins; secondReward += r.reward; }
+    // extra（配信回数・お気に入り）
+    if (md.extra && md.extra[d]) {
+      totalStreams += parseInt(md.extra[d].streams) || 0;
+      totalFavs += parseInt(md.extra[d].favs) || 0;
+    }
+  }
+  return { totalCoins, totalJpy, totalReward, totalStudio, firstCoins, firstReward, secondCoins, secondReward, totalStreams, totalFavs };
+}
+
+function toast(msg, color='var(--green)') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.color = color;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ════════════════════════════════════════
+// ページ切り替え
+// ════════════════════════════════════════
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    if (b.textContent.includes({
+      input:'売上',payment:'支払',cast:'キャスト',summary:'集計'
+    }[name])) b.classList.add('active');
+  });
+  if (name === 'input') renderInputTable();
+  if (name === 'payment') renderPayment();
+  if (name === 'cast') renderCastPage();
+  if (name === 'summary') renderSummary();
+}
+
+// ════════════════════════════════════════
+// キャストセレクト初期化
+// ════════════════════════════════════════
+function rebuildCastSelects() {
+  ['input-cast-sel','import-cast-sel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const cur = el.value;
+    el.innerHTML = state.casts.map(c =>
+      `<option value="${c.id}">${c.name}</option>`
+    ).join('');
+    if (cur) el.value = cur;
+  });
+  // summary filter
+  const sf = document.getElementById('summary-cast-filter');
+  if (sf) {
+    sf.innerHTML = '<option value="all">全キャスト合計</option>' +
+      state.casts.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  }
+}
+
+// ════════════════════════════════════════
+// 売上入力ページ
+// ════════════════════════════════════════
+function onRateChange() {
+  const castId = document.getElementById('input-cast-sel').value;
+  const month = parseInt(document.getElementById('input-month-sel').value);
+  const rate = parseFloat(document.getElementById('input-rate-sel').value);
+  const md = getMonthData(castId, month);
+  md.rewardRate = rate;
+  renderInputTable();
+  toast('報酬率を更新しました');
+}
+
+function renderInputTable() {
+  const castId = document.getElementById('input-cast-sel').value;
+  const month = parseInt(document.getElementById('input-month-sel').value);
+  if (!castId) return;
+
+  const md = getMonthData(castId, month);
+  // 為替・報酬率セレクトを同期
+  document.getElementById('input-rate-sel').value = String(md.rewardRate);
+  document.getElementById('input-fx1').value = md.fx1 || 150;
+  document.getElementById('input-fx2').value = md.fx2 || 150;
+
+  const days = MONTH_DAYS[month] || 30;
+  const sum = calcMonthSummary(castId, month);
+
+  // スタット
+  document.getElementById('input-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">コイン合計</div><div class="stat-value yellow">${fmt(sum.totalCoins)}</div><div class="stat-sub">coins</div></div>
+    <div class="stat-card"><div class="stat-label">円売上合計</div><div class="stat-value purple">${fmt(sum.totalJpy,'jpy')}</div></div>
+    <div class="stat-card"><div class="stat-label">キャスト報酬</div><div class="stat-value purple">${fmt(sum.totalReward,'jpy')}</div><div class="stat-sub">${fmt(md.rewardRate,'pct')}</div></div>
+    <div class="stat-card"><div class="stat-label">事務所利益</div><div class="stat-value teal">${fmt(sum.totalStudio,'jpy')}</div><div class="stat-sub">${fmt(1-md.rewardRate,'pct')}</div></div>
+  `;
+
+  // テーブル
+  let rows = '';
+  for (let d = 1; d <= days; d++) {
+    const isFirst = d <= 15;
+    const coins = md.days[d] || '';
+    const r = coins ? calcDay(coins, isFirst, md) : null;
+    const shimeBadge = isFirst
+      ? '<span class="shime-badge shime-first">前半</span>'
+      : '<span class="shime-badge shime-second">後半</span>';
+    const fx = isFirst ? (md.fx1||150) : (md.fx2||150);
+    rows += `<tr>
+      <td class="day-label ${isFirst?'first-half':'second-half'}">${String(month).padStart(2,'0')}/${String(d).padStart(2,'0')}</td>
+      <td>${shimeBadge}</td>
+      <td><input type="number" class="coin-input" placeholder="コインなし"
+        value="${coins || ''}"
+        onchange="saveCoins('${castId}',${month},${d},this.value)"
+        onblur="renderInputTable()"></td>
+      <td class="calc-cell">${r ? fmt(r.usd,'usd') : '—'}</td>
+      <td class="calc-cell">${fx}</td>
+      <td class="calc-cell">${r ? fmt(r.jpy,'jpy') : '—'}</td>
+      <td class="calc-cell reward">${r ? fmt(r.reward,'jpy') : '—'}</td>
+      <td class="calc-cell studio">${r ? fmt(r.studio,'jpy') : '—'}</td>
+    </tr>`;
+  }
+
+  // 合計行
+  rows += `<tr class="total-row">
+    <td colspan="2">月間合計</td>
+    <td class="calc-cell" style="text-align:right; color:var(--yellow); font-weight:700;">${fmt(sum.totalCoins)}</td>
+    <td class="calc-cell">${fmt(sum.totalCoins*COIN_RATE,'usd')}</td>
+    <td></td>
+    <td class="calc-cell">${fmt(sum.totalJpy,'jpy')}</td>
+    <td class="calc-cell reward">${fmt(sum.totalReward,'jpy')}</td>
+    <td class="calc-cell studio">${fmt(sum.totalStudio,'jpy')}</td>
+  </tr>`;
+
+  // 支払日
+  const payMonth = month;
+  const nextM = month < 12 ? month + 1 : 1;
+  const nextY = month < 12 ? 2026 : 2027;
+  rows += `<tr style="background:var(--bg3);">
+    <td colspan="2" style="font-size:11px; color:var(--text3);">前半支払日</td>
+    <td colspan="3" style="text-align:left; color:var(--yellow); font-family:'Space Mono',monospace; font-size:12px;">2026/${String(payMonth).padStart(2,'0')}/30</td>
+    <td colspan="3" style="text-align:left; font-size:11px; color:var(--text3);">後半支払日 → ${nextY}/${String(nextM).padStart(2,'0')}/15</td>
+  </tr>`;
+
+  document.getElementById('input-table-wrap').innerHTML = `
+    <table class="input-table">
+      <thead><tr>
+        <th style="text-align:left;">日付</th>
+        <th>締め</th>
+        <th>コイン数 💰</th>
+        <th>ドル売上</th>
+        <th>為替</th>
+        <th>円売上</th>
+        <th style="color:var(--purple2);">報酬額<br><span style="font-size:10px;">(キャスト)</span></th>
+        <th style="color:var(--teal);">事務所利益<br><span style="font-size:10px;">(事務所)</span></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function saveFx() {
+  const castId = document.getElementById('input-cast-sel').value;
+  const month = parseInt(document.getElementById('input-month-sel').value);
+  if (!castId) return;
+  const md = getMonthData(castId, month);
+  const fx1 = parseFloat(document.getElementById('input-fx1').value);
+  const fx2 = parseFloat(document.getElementById('input-fx2').value);
+  if (fx1 > 0) md.fx1 = fx1;
+  if (fx2 > 0) md.fx2 = fx2;
+  renderInputTable();
+  toast('為替を更新しました ✓');
+}
+
+function saveCoins(castId, month, day, val) {
+  const md = getMonthData(castId, month);
+  const coins = parseInt(val) || 0;
+  if (coins > 0) md.days[day] = coins;
+  else delete md.days[day];
+  toast('保存しました ✓');
+}
+
+// ════════════════════════════════════════
+// 支払い管理
+// ════════════════════════════════════════
+function renderPayment() {
+  const month = parseInt(document.getElementById('pay-month-sel').value);
+  let html = '';
+
+  // 前半
+  html += `<div class="section-header first">⏰ 前半締め（1〜15日）　→　支払日：2026/${String(month).padStart(2,'0')}/30</div>`;
+  html += renderPaymentTable(month, true);
+
+  html += '<div class="divider"></div>';
+
+  // 後半
+  const nextM = month < 12 ? month + 1 : 1;
+  const nextY = month < 12 ? 2026 : 2027;
+  html += `<div class="section-header second">⏰ 後半締め（16〜末日）　→　支払日：${nextY}/${String(nextM).padStart(2,'0')}/15</div>`;
+  html += renderPaymentTable(month, false);
+
+  // 月間総合計
+  let totalReward = 0, totalStudio = 0;
+  state.casts.forEach(cast => {
+    const s = calcMonthSummary(cast.id, month);
+    totalReward += s.totalReward;
+    totalStudio += s.totalStudio;
+  });
+  html += `
+    <div style="display:flex; gap:12px; margin-top:16px; flex-wrap:wrap;">
+      <div class="stat-card" style="flex:1; min-width:180px;">
+        <div class="stat-label">月間 キャスト報酬合計</div>
+        <div class="stat-value purple">${fmt(totalReward,'jpy')}</div>
+      </div>
+      <div class="stat-card" style="flex:1; min-width:180px;">
+        <div class="stat-label">月間 事務所利益合計</div>
+        <div class="stat-value teal">${fmt(totalStudio,'jpy')}</div>
+      </div>
+    </div>`;
+
+  document.getElementById('payment-content').innerHTML = html;
+}
+
+function renderPaymentTable(month, isFirst) {
+  let rows = '';
+  let totalReward = 0, totalStudio = 0;
+
+  state.casts.forEach(cast => {
+    const md = getMonthData(cast.id, month);
+    const days = MONTH_DAYS[month] || 30;
+    let coins=0, jpy=0, reward=0, studio=0;
+    for (let d = 1; d <= days; d++) {
+      if ((isFirst && d > 15) || (!isFirst && d <= 15)) continue;
+      const c = md.days[d] || 0;
+      if (!c) continue;
+      const r = calcDay(c, isFirst, md);
+      if (!r) continue;
+      coins += c;
+      jpy += r.jpy;
+      reward += r.reward;
+      studio += r.studio;
+    }
+    totalReward += reward;
+    totalStudio += studio;
+
+    const payId = `pay-${cast.id}-${month}-${isFirst?'f':'s'}`;
+    const paidId = `paid-${cast.id}-${month}-${isFirst?'f':'s'}`;
+    const key = `pay_${cast.id}_${month}_${isFirst?'f':'s'}`;
+    const paidStatus = localStorage.getItem ? (localStorage.getItem(key) || '未払') : '未払';
+
+    rows += `<tr>
+      <td>${cast.name}</td>
+      <td>${fmt(coins)}</td>
+      <td>${fmt(jpy,'jpy')}</td>
+      <td><span class="badge badge-purple">${fmt(md.rewardRate,'pct')}</span></td>
+      <td style="color:var(--purple2); font-weight:700;">${fmt(reward,'jpy')}</td>
+      <td style="color:var(--teal); font-weight:700;">${fmt(studio,'jpy')}</td>
+      <td>
+        <select class="form-control" style="width:80px; padding:4px 8px; font-size:11px;"
+          onchange="savePaid('${key}',this.value)">
+          <option ${paidStatus==='未払'?'selected':''}>未払</option>
+          <option ${paidStatus==='支払済'?'selected':''}>支払済</option>
+        </select>
+      </td>
+    </tr>`;
+  });
+
+  rows += `<tr class="total-row">
+    <td>合計</td>
+    <td colspan="3"></td>
+    <td style="color:var(--purple2);">${fmt(totalReward,'jpy')}</td>
+    <td style="color:var(--teal);">${fmt(totalStudio,'jpy')}</td>
+    <td></td>
+  </tr>`;
+
+  return `<div class="table-wrap" style="margin-bottom:8px;">
+    <table>
+      <thead><tr>
+        <th style="text-align:left;">キャスト</th>
+        <th>コイン数</th>
+        <th>円売上</th>
+        <th>報酬率</th>
+        <th style="color:var(--purple2);">報酬額(キャスト)</th>
+        <th style="color:var(--teal);">事務所利益</th>
+        <th>支払状況</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function savePaid(key, val) {
+  try { localStorage.setItem(key, val); } catch(e) {}
+  toast(val === '支払済' ? '✓ 支払済にしました' : '未払に変更しました');
+}
+
+// ════════════════════════════════════════
+// キャスト管理
+// ════════════════════════════════════════
+function renderCastPage() {
+  rebuildCastSelects();
+  let html = '';
+  state.casts.forEach(cast => {
+    // 年間コイン合計
+    let totalCoins = 0;
+    for (let m = 1; m <= 12; m++) totalCoins += calcMonthSummary(cast.id, m).totalCoins;
+    html += `<div class="cast-card">
+      <button class="cast-delete" onclick="deleteCast('${cast.id}')" title="削除">✕</button>
+      <div class="cast-name">${cast.name}</div>
+      <div class="cast-rate">年間 ${fmt(totalCoins)} coins</div>
+    </div>`;
+  });
+  document.getElementById('cast-grid').innerHTML = html || '<div style="color:var(--text3)">キャストがいません</div>';
+}
+
+function openAddCastModal() {
+  document.getElementById('add-cast-modal').classList.add('open');
+  document.getElementById('new-cast-name').value = '';
+  document.getElementById('new-cast-name').focus();
+}
+function closeAddCastModal() {
+  document.getElementById('add-cast-modal').classList.remove('open');
+}
+
+function addCast() {
+  const name = document.getElementById('new-cast-name').value.trim();
+  if (!name) { toast('名前を入力してください', 'var(--red)'); return; }
+  if (state.casts.find(c => c.name === name)) { toast('同じ名前のキャストがいます', 'var(--red)'); return; }
+  const id = 'cast_' + Date.now();
+  state.casts.push({ id, name });
+  state.records[id] = {};
+  closeAddCastModal();
+  rebuildCastSelects();
+  renderCastPage();
+  toast(`${name} を追加しました ✓`);
+}
+
+function deleteCast(castId) {
+  if (!confirm('このキャストのデータをすべて削除しますか？')) return;
+  state.casts = state.casts.filter(c => c.id !== castId);
+  delete state.records[castId];
+  rebuildCastSelects();
+  renderCastPage();
+  toast('削除しました', 'var(--red)');
+}
+
+// ════════════════════════════════════════
+// Excelインポート
+// ════════════════════════════════════════
+// ── キャストCSVインポート ──
+function importCastCSV() {
+  const file = document.getElementById('import-cast-csv').files[0];
+  if (!file) { toast('CSVファイルを選択してください', 'var(--red)'); return; }
+  const status = document.getElementById('import-csv-status');
+  status.innerHTML = '<span style="color:var(--yellow)">読み込み中...</span>';
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const text = e.target.result;
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+      // ヘッダーコメントからキャスト名・月を取得
+      let castNameFromCSV = '';
+      let targetMonth = 0;
+      let targetYear = 2026;
+
+      lines.forEach(line => {
+        if (line.startsWith('# キャスト名:')) castNameFromCSV = line.replace('# キャスト名:', '').trim();
+        if (line.startsWith('# 対象月:')) {
+          const m = line.match(/(\d+)年(\d+)月/);
+          if (m) { targetYear = parseInt(m[1]); targetMonth = parseInt(m[2]); }
+        }
+      });
+
+      if (!targetMonth) { status.innerHTML = '<span style="color:var(--red)">月が読み取れませんでした</span>'; return; }
+
+      // キャストを名前で探す（なければ新規作成）
+      let cast = state.casts.find(c => c.name === castNameFromCSV);
+      if (!cast && castNameFromCSV) {
+        const id = 'cast_' + Date.now();
+        state.casts.push({ id, name: castNameFromCSV });
+        state.records[id] = {};
+        cast = state.casts[state.casts.length - 1];
+        rebuildCastSelects();
+      }
+      if (!cast) { status.innerHTML = '<span style="color:var(--red)">キャスト名が不明です。先にキャストを追加してください</span>'; return; }
+
+      // データ行をパース
+      const md = getMonthData(cast.id, targetMonth);
+      let count = 0;
+      lines.forEach(line => {
+        if (line.startsWith('#') || line.startsWith('日付')) return;
+        const cols = line.split(',');
+        if (cols.length < 2) return;
+        const dateM = cols[0].match(/(\d+)\/(\d+)\/(\d+)/);
+        if (!dateM) return;
+        const day = parseInt(dateM[3]);
+        const coins = parseInt(cols[1]) || 0;
+        const streams = parseInt(cols[2]) || 0;
+        const favs = parseInt(cols[3]) || 0;
+        const memo = (cols[4] || '').replace(/^"|"$/g, '');
+        if (coins > 0 || streams > 0 || favs > 0) {
+          md.days[day] = coins;
+          if (!md.extra) md.extra = {};
+          md.extra[day] = { streams, favs, memo };
+          count++;
+        }
+      });
+
+      status.innerHTML = `<span style="color:var(--green)">✓ ${cast.name}（${targetMonth}月）${count}日分を取り込みました</span>`;
+      toast(`${cast.name} ${targetMonth}月 取り込み完了 ✓`);
+      renderCastPage();
+    } catch(err) {
+      status.innerHTML = `<span style="color:var(--red)">エラー: ${err.message}</span>`;
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+async function importExcel() {
+  const castId = document.getElementById('import-cast-sel').value;
+  const file = document.getElementById('import-file').files[0];
+  if (!file) { toast('ファイルを選択してください', 'var(--red)'); return; }
+
+  const status = document.getElementById('import-status');
+  status.innerHTML = '<span style="color:var(--yellow)">読み込み中...</span>';
+
+  try {
+    // SheetJSを動的読み込み
+    if (!window.XLSX) {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    const ab = await file.arrayBuffer();
+    const wb = XLSX.read(ab, { type: 'array' });
+    let imported = 0;
+
+    wb.SheetNames.forEach(sname => {
+      const m = sname.match(/^(\d+)月/);
+      if (!m) return;
+      const month = parseInt(m[1]);
+      const ws = wb.Sheets[sname];
+      const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+      // 為替レート（1行目E列=index4）
+      const fxRate = data[0] && data[0][4] ? parseFloat(data[0][4]) : 150;
+      // 報酬率（2行目F列ヘッダー）
+      const rateHeader = data[1] && data[1][5] ? String(data[1][5]) : '';
+      const rewardRate = rateHeader.includes('80') ? 0.8 :
+                         rateHeader.includes('70') ? 0.7 :
+                         rateHeader.includes('60') ? 0.6 :
+                         rateHeader.includes('90') ? 0.9 : 0.5;
+
+      const days = {};
+      for (let i = 2; i < data.length; i++) {
+        const row = data[i];
+        if (!row || !row[0]) continue;
+        const dateStr = String(row[0]);
+        const dayM = dateStr.match(/(\d+)\/(\d+)/);
+        if (!dayM) continue;
+        const day = parseInt(dayM[2]);
+        const coins = parseInt(row[1]) || 0;
+        if (coins > 0) days[day] = coins;
+      }
+
+      state.records[castId][month] = { rewardRate, fx1: fxRate, fx2: fxRate, days };
+      imported++;
+    });
+
+    status.innerHTML = `<span style="color:var(--green)">✓ ${imported}ヶ月分のデータを取り込みました</span>`;
+    toast('インポート完了 ✓');
+  } catch(e) {
+    status.innerHTML = `<span style="color:var(--red)">エラー: ${e.message}</span>`;
+    toast('インポートに失敗しました', 'var(--red)');
+  }
+}
+
+// ════════════════════════════════════════
+// 集計レポート
+// ════════════════════════════════════════
+function renderSummary() {
+  rebuildCastSelects();
+
+  // 全体合計
+  let totalCoins=0, totalJpy=0, totalReward=0, totalStudio=0;
+  state.casts.forEach(cast => {
+    for (let m = 1; m <= 12; m++) {
+      const s = calcMonthSummary(cast.id, m);
+      totalCoins += s.totalCoins;
+      totalJpy += s.totalJpy;
+      totalReward += s.totalReward;
+      totalStudio += s.totalStudio;
+    }
+  });
+
+  document.getElementById('summary-totals').innerHTML = `
+    <div class="stat-card"><div class="stat-label">年間 コイン合計</div><div class="stat-value yellow">${fmt(totalCoins)}</div><div class="stat-sub">coins</div></div>
+    <div class="stat-card"><div class="stat-label">年間 円売上</div><div class="stat-value purple">${fmt(totalJpy,'jpy')}</div></div>
+    <div class="stat-card"><div class="stat-label">年間 キャスト報酬</div><div class="stat-value purple">${fmt(totalReward,'jpy')}</div></div>
+    <div class="stat-card"><div class="stat-label">年間 事務所利益</div><div class="stat-value teal">${fmt(totalStudio,'jpy')}</div></div>
+  `;
+
+  // 月別棒グラフ
+  const monthCoins = Array.from({length:12},(_,i) => {
+    let c = 0;
+    state.casts.forEach(cast => { c += calcMonthSummary(cast.id, i+1).totalCoins; });
+    return c;
+  });
+  const maxCoins = Math.max(...monthCoins, 1);
+  let chartHtml = '<div style="display:flex; gap:6px; align-items:flex-end; height:120px; padding:8px 0;">';
+  monthCoins.forEach((c, i) => {
+    const h = Math.max((c / maxCoins) * 100, 0);
+    chartHtml += `<div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;">
+      <div style="font-family:'Space Mono',monospace; font-size:9px; color:var(--text3);">${c?fmt(c):''}</div>
+      <div style="width:100%; background:${c?'var(--purple)':'var(--border)'}; height:${h}%; border-radius:3px 3px 0 0; min-height:${c?4:0}px; opacity:${c?1:0.3};"></div>
+      <div style="font-size:10px; color:var(--text2);">${i+1}月</div>
+    </div>`;
+  });
+  chartHtml += '</div>';
+  document.getElementById('summary-monthly-chart').innerHTML = chartHtml;
+
+  // キャスト別テーブル
+  let castRows = '';
+  state.casts.forEach(cast => {
+    let coins=0, jpy=0, reward=0, studio=0, activeMon=0, streams=0, favs=0;
+    for (let m=1;m<=12;m++) {
+      const s = calcMonthSummary(cast.id, m);
+      coins += s.totalCoins; jpy += s.totalJpy; reward += s.totalReward; studio += s.totalStudio;
+      streams += s.totalStreams; favs += s.totalFavs;
+      if (s.totalCoins > 0) activeMon++;
+    }
+    castRows += `<tr>
+      <td>${cast.name}</td>
+      <td>${fmt(coins)}</td>
+      <td>${fmt(jpy,'jpy')}</td>
+      <td style="color:var(--purple2);">${fmt(reward,'jpy')}</td>
+      <td style="color:var(--teal);">${fmt(studio,'jpy')}</td>
+      <td style="color:var(--purple2);">${streams || '—'}</td>
+      <td style="color:var(--green);">+${favs || '—'}</td>
+      <td><span class="badge badge-gray">${activeMon}ヶ月</span></td>
+    </tr>`;
+  });
+  document.getElementById('summary-cast-table').innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th style="text-align:left;">キャスト</th>
+          <th>コイン</th><th>円売上</th>
+          <th style="color:var(--purple2);">報酬額</th>
+          <th style="color:var(--teal);">事務所利益</th>
+          <th style="color:var(--purple2);">配信回数</th>
+          <th style="color:var(--green);">お気に入り増加</th>
+          <th>稼働月</th>
+        </tr></thead>
+        <tbody>${castRows}</tbody>
+      </table>
+    </div>`;
+
+  renderSummaryDetail();
+}
+
+function renderSummaryDetail() {
+  const filter = document.getElementById('summary-cast-filter').value;
+  let rows = '';
+  let grandCoins=0, grandJpy=0, grandReward=0, grandStudio=0;
+
+  for (let m = 1; m <= 12; m++) {
+    let coins=0, jpy=0, reward=0, studio=0;
+    const targets = filter === 'all' ? state.casts : state.casts.filter(c => c.id === filter);
+    targets.forEach(cast => {
+      const s = calcMonthSummary(cast.id, m);
+      coins += s.totalCoins; jpy += s.totalJpy; reward += s.totalReward; studio += s.totalStudio;
+    });
+    grandCoins += coins; grandJpy += jpy; grandReward += reward; grandStudio += studio;
+    rows += `<tr>
+      <td>${m}月</td>
+      <td>${coins ? fmt(coins) : '<span style="color:var(--text3)">—</span>'}</td>
+      <td>${jpy ? fmt(jpy,'jpy') : '—'}</td>
+      <td style="color:var(--purple2);">${reward ? fmt(reward,'jpy') : '—'}</td>
+      <td style="color:var(--teal);">${studio ? fmt(studio,'jpy') : '—'}</td>
+    </tr>`;
+  }
+  rows += `<tr class="total-row">
+    <td>年間合計</td>
+    <td>${fmt(grandCoins)}</td>
+    <td>${fmt(grandJpy,'jpy')}</td>
+    <td style="color:var(--purple2);">${fmt(grandReward,'jpy')}</td>
+    <td style="color:var(--teal);">${fmt(grandStudio,'jpy')}</td>
+  </tr>`;
+
+  document.getElementById('summary-detail-table').innerHTML = `
+    <table>
+      <thead><tr>
+        <th style="text-align:left;">月</th>
+        <th>コイン数</th><th>円売上</th>
+        <th style="color:var(--purple2);">キャスト報酬</th>
+        <th style="color:var(--teal);">事務所利益</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ════════════════════════════════════════
+// CSVエクスポート
+// ════════════════════════════════════════
+function exportCSV() {
+  let csv = '\uFEFF月,キャスト,コイン数,円売上,キャスト報酬,事務所利益,報酬率\n';
+  for (let m = 1; m <= 12; m++) {
+    state.casts.forEach(cast => {
+      const md = getMonthData(cast.id, m);
+      const s = calcMonthSummary(cast.id, m);
+      if (s.totalCoins > 0) {
+        csv += `${m}月,${cast.name},${s.totalCoins},${Math.round(s.totalJpy)},${Math.round(s.totalReward)},${Math.round(s.totalStudio)},${(md.rewardRate*100).toFixed(0)}%\n`;
+      }
+    });
+  }
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `studio_report_${new Date().getFullYear()}.csv`;
+  a.click();
+  toast('CSVをエクスポートしました ✓');
+}
+
+// ════════════════════════════════════════
+// 初期化
+// ════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  rebuildCastSelects();
+  // 現在月にセット
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  document.getElementById('input-month-sel').value = String(Math.min(currentMonth, 3)); // データある月
+  document.getElementById('pay-month-sel').value = String(Math.min(currentMonth, 3));
+  renderInputTable();
+});
+
+// Enterでキャスト追加
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('add-cast-modal').classList.contains('open')) {
+    addCast();
+  }
+});
+</script>
+</body>
+</html>
