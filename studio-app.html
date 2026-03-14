@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>配信記録</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --surface: #16161f;
+  --surface2: #1d1d28;
+  --surface3: #242432;
+  --border: #252535;
+  --border2: #32324a;
+  --accent: #6c63ff;
+  --accent2: #8b85ff;
+  --teal: #00d4aa;
+  --teal2: #00f5c4;
+  --amber: #f5a623;
+  --amber2: #ffc15e;
+  --rose: #ff6b9d;
+  --green: #2ecc71;
+  --text: #e8e8f0;
+  --text2: #8888aa;
+  --text3: #44445a;
+  --owner-accent: #ff6b9d;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  overscroll-behavior: none;
+}
+
+/* ══════════════ LOGIN SCREEN ══════════════ */
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.login-screen::before {
+  content: '';
+  position: absolute;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(108,99,255,0.08) 0%, transparent 70%);
+  top: -200px; right: -200px;
+  pointer-events: none;
+}
+.login-screen::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(0,212,170,0.06) 0%, transparent 70%);
+  bottom: -100px; left: -100px;
+  pointer-events: none;
+}
+
+.app-logo {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 48px;
+}
+.app-logo span { color: var(--accent2); }
+
+.mode-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 340px;
+  margin-bottom: 32px;
+}
+
+.mode-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 22px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+}
+.mode-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.mode-card.cast::before { background: linear-gradient(135deg, rgba(108,99,255,0.08), transparent); }
+.mode-card.owner::before { background: linear-gradient(135deg, rgba(255,107,157,0.08), transparent); }
+.mode-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.mode-card:hover::before { opacity: 1; }
+.mode-card:active { transform: translateY(0); }
+
+.mode-icon { font-size: 28px; margin-bottom: 10px; display: block; }
+.mode-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.mode-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.mode-card.cast .mode-title { color: var(--accent2); }
+.mode-card.owner .mode-title { color: var(--owner-accent); }
+.mode-arrow { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 18px; }
+
+/* ══════════════ CAST NAME INPUT ══════════════ */
+.name-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.name-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 360px;
+}
+.name-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.name-card p { font-size: 13px; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
+
+/* ══════════════ OWNER PASSWORD ══════════════ */
+.pw-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.pw-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 360px;
+  border-top: 2px solid var(--owner-accent);
+}
+.pw-card h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--owner-accent); }
+.pw-card p { font-size: 12px; color: var(--text2); margin-bottom: 24px; }
+.pw-error { color: var(--rose); font-size: 12px; margin-top: 8px; display: none; }
+.pw-error.show { display: block; }
+
+/* ══════════════ SHARED COMPONENTS ══════════════ */
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.form-group label { font-size: 11px; color: var(--text2); font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; }
+
+.input {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 12px 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+.input:focus { border-color: var(--accent); }
+.input.owner-focus:focus { border-color: var(--owner-accent); }
+select.input { cursor: pointer; }
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-accent { background: var(--accent); color: white; }
+.btn-accent:hover { background: var(--accent2); }
+.btn-owner { background: var(--owner-accent); color: white; }
+.btn-owner:hover { opacity: 0.9; }
+.btn-teal { background: var(--teal); color: var(--bg); }
+.btn-teal:hover { background: var(--teal2); }
+.btn-sm {
+  width: auto;
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { border-color: var(--border2); color: var(--text); }
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 24px;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.back-btn:hover { color: var(--text); }
+
+/* ══════════════ CAST APP ══════════════ */
+.cast-app { display: none; }
+.cast-app.active { display: block; }
+
+.cast-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.cast-header-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+.cast-header-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  background: rgba(108,99,255,0.15);
+  color: var(--accent2);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.cast-header-month {
+  margin-left: auto;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: var(--teal);
+}
+
+.cast-main { padding: 14px 16px 100px; max-width: 520px; margin: 0 auto; }
+
+/* 月ナビ */
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+.mnav-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text2);
+  cursor: pointer;
+  padding: 5px 12px;
+  font-size: 16px;
+  transition: all 0.12s;
+  line-height: 1;
+}
+.mnav-btn:hover { border-color: var(--accent); color: var(--accent2); }
+.mnav-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+  text-align: center;
+}
+
+/* 月サマリー */
+.mini-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.mini-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.mini-stat-label { font-size: 9px; color: var(--text3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+.mini-stat-val { font-family: 'DM Mono', monospace; font-size: 18px; font-weight: 500; line-height: 1; }
+
+/* 日付カード */
+.legend {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 10px;
+  font-size: 11px;
+  color: var(--text3);
+}
+.legend-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
+
+.day-cards { display: flex; flex-direction: column; gap: 6px; }
+
+.day-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.day-card.filled { border-color: var(--border2); }
+
+.day-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.day-date {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  min-width: 44px;
+}
+.day-card.filled .day-date { color: var(--text); }
+.shime-pip { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.pip-first { background: var(--amber); }
+.pip-second { background: var(--teal); }
+
+.day-preview {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text3);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.preview-chip {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.chip-coin { background: rgba(245,166,35,0.12); color: var(--amber2); }
+.chip-stream { background: rgba(108,99,255,0.12); color: var(--accent2); }
+.chip-fav { background: rgba(46,204,113,0.12); color: var(--green); }
+
+.chevron { color: var(--text3); font-size: 10px; transition: transform 0.2s; flex-shrink: 0; }
+.chevron.open { transform: rotate(180deg); }
+
+.day-card-body {
+  display: none;
+  padding: 0 14px 12px;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.day-card-body.open {
+  display: grid;
+}
+
+.field-label { font-size: 10px; color: var(--text3); margin-bottom: 4px; letter-spacing: 0.04em; }
+.field-input {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 16px;
+  font-weight: 500;
+  text-align: right;
+  padding: 9px 12px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.12s;
+  -webkit-appearance: none;
+}
+.field-input:focus { border-color: var(--accent); }
+.field-input.f-coin { color: var(--amber); }
+.field-input.f-stream { color: var(--accent2); }
+.field-input.f-fav { color: var(--green); }
+.field-input.f-memo {
+  color: var(--text2);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  text-align: left;
+  grid-column: 1 / -1;
+}
+
+/* save indicator */
+.save-flash {
+  position: fixed;
+  top: 70px;
+  right: 16px;
+  background: var(--surface2);
+  border: 1px solid var(--green);
+  color: var(--green);
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  z-index: 200;
+  font-family: 'DM Mono', monospace;
+}
+.save-flash.show { opacity: 1; }
+
+/* footer */
+.cast-footer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  gap: 10px;
+  z-index: 50;
+}
+
+/* ══════════════ OWNER APP ══════════════ */
+.owner-app { display: none; }
+.owner-app.active { display: block; }
+
+.owner-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-top: 2px solid var(--owner-accent);
+}
+.owner-header-logo {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--owner-accent);
+  letter-spacing: 0.08em;
+}
+.owner-nav { display: flex; gap: 2px; flex: 1; overflow-x: auto; }
+.onav-btn {
+  padding: 5px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  border-radius: 6px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: all 0.12s;
+}
+.onav-btn:hover { background: var(--surface2); color: var(--text); }
+.onav-btn.active { background: var(--surface2); color: var(--owner-accent); font-weight: 700; }
+
+.owner-main { padding: 20px; max-width: 1100px; margin: 0 auto; }
+.owner-page { display: none; }
+.owner-page.active { display: block; }
+
+/* owner cards */
+.o-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+}
+.o-card-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.o-card-title::before {
+  content: '';
+  width: 3px; height: 13px;
+  background: var(--owner-accent);
+  border-radius: 2px;
+}
+
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+@media (max-width: 600px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+.stat-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.stat-box-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+.stat-box-val { font-family: 'DM Mono', monospace; font-size: 20px; font-weight: 500; line-height: 1; }
+
+/* table */
+.t-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th {
+  background: var(--bg2);
+  color: var(--text2);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 9px 14px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+th:first-child { text-align: left; }
+td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+}
+td:first-child { text-align: left; font-family: 'Noto Sans JP', sans-serif; font-size: 13px; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+.tr-total td { background: var(--bg2); font-weight: 700; border-top: 1px solid var(--border2); font-size: 13px; }
+
+/* cast mgmt grid */
+.cast-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.cast-tile {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  position: relative;
+}
+.cast-tile-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+.cast-tile-sub { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--teal); }
+.cast-tile-del {
+  position: absolute; top: 8px; right: 10px;
+  background: none; border: none;
+  color: var(--text3); cursor: pointer; font-size: 14px; padding: 3px 7px;
+  border-radius: 4px; transition: all 0.12s;
+}
+.cast-tile-del:hover { background: rgba(255,107,157,0.12); color: var(--rose); }
+
+/* bar chart */
+.bar-chart { display: flex; gap: 4px; align-items: flex-end; height: 100px; padding: 4px 0; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.bar-val { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text3); }
+.bar { width: 100%; border-radius: 3px 3px 0 0; min-height: 2px; transition: height 0.3s; }
+.bar-label { font-size: 9px; color: var(--text2); font-family: 'DM Mono', monospace; }
+
+/* modal */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 20px;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 360px;
+}
+.modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 18px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+.modal-actions .btn { flex: 1; padding: 10px; }
+
+/* toast */
+#toast {
+  position: fixed;
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(30px);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 12px;
+  color: var(--green);
+  opacity: 0;
+  transition: all 0.2s;
+  z-index: 999;
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: 'DM Mono', monospace;
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* hidden */
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════ -->
+<div id="loading-overlay" style="display:none; position:fixed; inset:0; background:rgba(10,10,15,0.92); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:16px;">
+  <div style="width:36px; height:36px; border:3px solid var(--border2); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+  <div id="loading-msg" style="font-size:13px; color:var(--text2); font-family:'DM Mono',monospace;">読み込み中...</div>
+</div>
+<style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
+<div id="login-screen" class="login-screen">
+  <div class="app-logo">STUDIO <span>·</span> MGR</div>
+  <div class="mode-cards">
+    <div class="mode-card owner" onclick="directOwnerLogin()">
+      <span class="mode-icon">📊</span>
+      <div class="mode-title">オーナー管理</div>
+      <span class="mode-arrow">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     CAST NAME INPUT
+══════════════════════════════════ -->
+<div id="cast-name-screen" class="name-screen hidden">
+  <div class="name-card">
+    <button class="back-btn" onclick="goLogin()">← 戻る</button>
+    <h2>🎬 配信記録ログイン</h2>
+    <p>オーナーから受け取ったパスワードを入力してください</p>
+    <div class="form-group">
+      <label>パスワード</label>
+      <input type="password" class="input" id="cast-pw-input" placeholder="••••••••" oninput="clearCastPwError()">
+    </div>
+    <div class="pw-error" id="cast-pw-error"></div>
+    <button class="btn btn-accent" onclick="startCastApp()" style="margin-top:12px;">ログイン →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     OWNER PASSWORD
+══════════════════════════════════ -->
+<div id="owner-pw-screen" class="pw-screen hidden">
+  <div class="pw-card">
+    <button class="back-btn" onclick="goLogin()">← 戻る</button>
+    <h2>🔐 オーナー認証</h2>
+    <p>パスワードを入力してください</p>
+    <div class="form-group">
+      <label>パスワード</label>
+      <input type="password" class="input owner-focus" id="owner-pw-input" placeholder="••••••••"
+        oninput="clearPwError()">
+    </div>
+    <div class="pw-error" id="pw-error"></div>
+    <label style="display:flex; align-items:center; gap:8px; margin-top:10px; cursor:pointer; font-size:13px; color:var(--text2);">
+      <input type="checkbox" id="autologin-check" style="width:15px; height:15px; accent-color:var(--owner-accent);">
+      このブラウザでログイン状態を保持する
+    </label>
+    <button class="btn btn-owner" onclick="checkOwnerPw()" style="margin-top:14px;">ログイン</button>
+    <div style="margin-top:12px; font-size:11px; color:var(--text3);">※パスワード変更は管理画面→設定から</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     CAST APP
+══════════════════════════════════ -->
+<div id="cast-app" class="cast-app">
+  <div class="cast-header">
+    <div class="cast-header-name" id="cast-header-name"></div>
+    <div class="cast-header-badge">配信記録</div>
+    <div class="cast-header-month" id="cast-header-month"></div>
+  </div>
+
+  <div class="cast-main">
+    <div class="month-nav">
+      <button class="mnav-btn" onclick="castChangeMonth(-1)">‹</button>
+      <div class="mnav-label" id="cast-month-label"></div>
+      <button class="mnav-btn" onclick="castChangeMonth(1)">›</button>
+    </div>
+    <div class="mini-stats" id="cast-mini-stats"></div>
+    <div class="legend">
+      <span><span class="legend-dot" style="background:var(--amber)"></span>前半（〜15日）</span>
+      <span><span class="legend-dot" style="background:var(--teal)"></span>後半（16日〜）</span>
+    </div>
+    <div class="day-cards" id="cast-day-cards"></div>
+  </div>
+
+  <div class="cast-footer">
+    <button class="btn btn-ghost btn-sm" onclick="goLogin()" style="flex-shrink:0;">← 戻る</button>
+    <button class="btn btn-teal" onclick="castSaveConfirm()">✓ 保存完了・終了する</button>
+  </div>
+</div>
+
+<div class="save-flash" id="save-flash">保存 ✓</div>
+
+<!-- ══════════════════════════════════
+     OWNER APP
+══════════════════════════════════ -->
+<div id="owner-app" class="owner-app">
+  <div class="owner-header">
+    <div class="owner-header-logo">OWNER</div>
+    <nav class="owner-nav">
+      <button class="onav-btn active" onclick="ownerNav('input')">📥 売上入力</button>
+      <button class="onav-btn" onclick="ownerNav('payment')">💰 支払い</button>
+      <button class="onav-btn" onclick="ownerNav('casts')">👥 キャスト</button>
+      <button class="onav-btn" onclick="ownerNav('report')">📊 集計</button>
+      <button class="onav-btn" onclick="ownerNav('settings')">⚙️ 設定</button>
+    </nav>
+    <button class="btn btn-ghost btn-sm" onclick="goLogin()" style="flex-shrink:0; padding:5px 12px; font-size:11px;">ログアウト</button>
+  </div>
+
+  <div class="owner-main">
+
+    <!-- 売上入力 -->
+    <div id="owner-page-input" class="owner-page active">
+      <div style="display:flex; gap:12px; align-items:center; margin-bottom:16px; flex-wrap:wrap;">
+        <h2 style="font-size:17px; font-weight:700;">売上入力</h2>
+        <div style="margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label>キャスト</label>
+            <select class="input" id="oi-cast" onchange="ownerRenderInput()" style="padding:8px 12px; font-size:13px;"></select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>月</label>
+            <select class="input" id="oi-month" onchange="ownerRenderInput()" style="padding:8px 12px; font-size:13px; width:80px;">
+              <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+              <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+              <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+              <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>報酬率</label>
+            <select class="input" id="oi-rate" onchange="ownerSaveRate()" style="padding:8px 12px; font-size:13px; color:var(--accent2); font-weight:700; width:80px;">
+              <option value="0.5">50%</option><option value="0.6">60%</option>
+              <option value="0.7">70%</option><option value="0.8">80%</option><option value="0.9">90%</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>前半為替</label>
+            <input type="number" class="input" id="oi-fx1" value="150" oninput="ownerSaveFx()" style="padding:8px 10px; font-size:13px; width:80px;">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>後半為替</label>
+            <input type="number" class="input" id="oi-fx2" value="150" oninput="ownerSaveFx()" style="padding:8px 10px; font-size:13px; width:80px;">
+          </div>
+        </div>
+      </div>
+      <div class="stat-row" id="oi-stats"></div>
+      <div class="o-card" style="padding:0; overflow:hidden;">
+        <div id="oi-table" style="overflow-x:auto;"></div>
+      </div>
+    </div>
+
+    <!-- 支払い -->
+    <div id="owner-page-payment" class="owner-page">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap;">
+        <h2 style="font-size:17px; font-weight:700;">支払い管理</h2>
+        <div style="margin-left:auto;">
+          <select class="input" id="op-month" onchange="ownerRenderPayment()" style="padding:8px 12px; font-size:13px; width:90px;">
+            <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+            <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+            <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+            <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+          </select>
+        </div>
+      </div>
+      <div id="op-content"></div>
+    </div>
+
+    <!-- キャスト管理 -->
+    <div id="owner-page-casts" class="owner-page">
+      <div style="display:flex; align-items:center; margin-bottom:16px;">
+        <h2 style="font-size:17px; font-weight:700;">キャスト管理</h2>
+        <button class="btn btn-accent btn-sm" style="margin-left:auto;" onclick="openAddCast()">＋ 追加</button>
+      </div>
+      <div class="cast-grid" id="owner-cast-grid"></div>
+    </div>
+
+    <!-- 集計レポート -->
+    <div id="owner-page-report" class="owner-page">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
+        <h2 style="font-size:17px; font-weight:700;">集計レポート</h2>
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="exportCSV()">📤 CSV</button>
+      </div>
+      <div class="stat-row" id="rep-totals"></div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+        <div class="o-card">
+          <div class="o-card-title">月別コイン推移</div>
+          <div id="rep-chart"></div>
+        </div>
+        <div class="o-card">
+          <div class="o-card-title">キャスト別年間</div>
+          <div class="t-wrap" id="rep-cast-table"></div>
+        </div>
+      </div>
+      <div class="o-card">
+        <div class="o-card-title">月別詳細</div>
+        <div style="margin-bottom:10px;">
+          <select class="input" id="rep-filter" onchange="renderRepDetail()" style="padding:7px 12px; font-size:12px; width:180px;">
+            <option value="all">全キャスト合計</option>
+          </select>
+        </div>
+        <div class="t-wrap" id="rep-detail"></div>
+      </div>
+    </div>
+
+    <!-- 設定 -->
+    <div id="owner-page-settings" class="owner-page">
+      <h2 style="font-size:17px; font-weight:700; margin-bottom:16px;">設定</h2>
+      <div class="o-card" style="max-width:400px;">
+        <div class="o-card-title">パスワード変更</div>
+        <div class="form-group">
+          <label>現在のパスワード</label>
+          <input type="password" class="input" id="pw-old" placeholder="現在のパスワード">
+        </div>
+        <div class="form-group">
+          <label>新しいパスワード</label>
+          <input type="password" class="input" id="pw-new" placeholder="新しいパスワード（6文字以上）">
+        </div>
+        <div class="form-group">
+          <label>確認</label>
+          <input type="password" class="input" id="pw-new2" placeholder="もう一度入力">
+        </div>
+        <div id="pw-change-msg" style="font-size:12px; margin-bottom:10px;"></div>
+        <button class="btn btn-owner btn-sm" onclick="changePassword()">変更する</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- モーダル -->
+<div class="modal-bg" id="add-cast-modal">
+  <div class="modal">
+    <h3>キャストを追加</h3>
+    <div class="form-group">
+      <label>キャスト名</label>
+      <input type="text" class="input" id="new-cast-name" placeholder="例：さくら">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('add-cast-modal')">キャンセル</button>
+      <button class="btn btn-accent" onclick="addCast()">追加</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// GAS API
+// ═══════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxoPxD_dTYysCyJBJ5fk8F4x8eyCt1ispvMxeUHKNz8ISvjG6EOkJWn1AD_U-2mVWnPPQ/exec';
+
+async function gasGet(action, params={}) {
+  const url = GAS_URL + '?action=' + action + '&' + new URLSearchParams(params).toString();
+  const res = await fetch(url);
+  return res.json();
+}
+
+// GASはCORS制限のためPOSTが使えない→GETで代替（dataをJSONエンコードして渡す）
+async function gasPost(action, body) {
+  const params = new URLSearchParams({ action, data: JSON.stringify(body) });
+  const url = GAS_URL + '?' + params.toString();
+  const res = await fetch(url);
+  return res.json();
+}
+
+// ローディング表示
+function showLoading(msg='読み込み中...') {
+  document.getElementById('loading-overlay').style.display='flex';
+  document.getElementById('loading-msg').textContent=msg;
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').style.display='none';
+}
+
+// ═══════════════════════════════════════
+// DATA STORE
+// ═══════════════════════════════════════
+const COIN_RATE = 0.05;
+const MONTH_DAYS = {1:31,2:28,3:31,4:30,5:31,6:30,7:31,8:31,9:30,10:31,11:30,12:31};
+
+let ownerPassword = 'owner1234';
+let loginFailCount = 0;
+let lockUntil = 0; // timestamp
+
+function getLockRemainingMin() {
+  const rem = lockUntil - Date.now();
+  return rem > 0 ? Math.ceil(rem / 60000) : 0;
+}
+
+function clearPwError() {
+  if (getLockRemainingMin() === 0) {
+    document.getElementById('pw-error').classList.remove('show');
+    document.getElementById('pw-error').textContent = '';
+  }
+}
+
+// メインストア（GASから読み込み）
+let store = {
+  casts: [],
+  records: {},
+  castPasswords: {} // castId -> password
+};
+
+// GASデータをstoreに変換してロード
+async function loadFromGAS() {
+  showLoading('データを読み込んでいます...');
+  try {
+    const data = await gasGet('getAllData');
+    if (data.error) throw new Error(data.error);
+
+    // キャスト
+    store.casts = data.casts || [];
+
+    // 売上記録
+    store.records = {};
+    store.casts.forEach(c => { store.records[c.id] = {}; });
+    (data.records || []).forEach(r => {
+      const id = r.castId, m = parseInt(r.month), d = parseInt(r.day);
+      if (!store.records[id]) store.records[id] = {};
+      if (!store.records[id][m]) store.records[id][m] = { rewardRate: parseFloat(r.rewardRate)||0.5, fx1: parseFloat(r.fx1)||150, fx2: parseFloat(r.fx2)||150, days:{}, extra:{} };
+      const md = store.records[id][m];
+      md.rewardRate = parseFloat(r.rewardRate)||0.5;
+      md.fx1 = parseFloat(r.fx1)||150;
+      md.fx2 = parseFloat(r.fx2)||150;
+      if (parseInt(r.coins) > 0) md.days[d] = parseInt(r.coins);
+    });
+
+    // 配信記録（キャスト入力）
+    (data.extra || []).forEach(r => {
+      const id = r.castId, m = parseInt(r.month), d = parseInt(r.day);
+      if (!store.records[id]) store.records[id] = {};
+      if (!store.records[id][m]) store.records[id][m] = { rewardRate:0.5, fx1:150, fx2:150, days:{}, extra:{} };
+      if (!store.records[id][m].extra) store.records[id][m].extra = {};
+      store.records[id][m].extra[d] = {
+        streams: parseInt(r.streams)||0,
+        favTotal: parseInt(r.favTotal)||0,
+        memo: r.memo||''
+      };
+    });
+
+    // パスワード
+    if (data.settings) {
+      if (data.settings.ownerPassword) ownerPassword = data.settings.ownerPassword;
+      // キャストパスワード
+      Object.keys(data.settings).forEach(k => {
+        if (k.startsWith('castPw_')) {
+          const castId = k.replace('castPw_', '');
+          store.castPasswords[castId] = data.settings[k];
+        }
+      });
+    }
+
+    hideLoading();
+    return true;
+  } catch(e) {
+    hideLoading();
+    console.error('GAS読み込みエラー:', e);
+    return false;
+  }
+}
+
+// ─ ユーティリティ ─
+function getMonthData(castId, month) {
+  if (!store.records[castId]) store.records[castId] = {};
+  if (!store.records[castId][month]) store.records[castId][month] = { rewardRate:0.5, fx1:150, fx2:150, days:{}, extra:{} };
+  if (!store.records[castId][month].extra) store.records[castId][month].extra = {};
+  return store.records[castId][month];
+}
+
+function calcDay(coins, isFirst, md) {
+  if (!coins || coins <= 0) return null;
+  const fx = isFirst ? (md.fx1||150) : (md.fx2||150);
+  const jpy = coins * COIN_RATE * fx;
+  return { jpy, reward: jpy * md.rewardRate, studio: jpy * (1 - md.rewardRate) };
+}
+
+function calcMonth(castId, month) {
+  const md = getMonthData(castId, month);
+  let coins=0, jpy=0, reward=0, studio=0, streams=0, favs=0;
+  let fCoins=0, fReward=0, sCoins=0, sReward=0;
+  for (let d=1; d<=( MONTH_DAYS[month]||30); d++) {
+    const c = md.days[d]||0; if (!c) continue;
+    const isF = d<=15;
+    const r = calcDay(c, isF, md); if (!r) continue;
+    coins+=c; jpy+=r.jpy; reward+=r.reward; studio+=r.studio;
+    if (isF) { fCoins+=c; fReward+=r.reward; } else { sCoins+=c; sReward+=r.reward; }
+    if (md.extra[d]) {
+      streams+=parseInt(md.extra[d].streams)||0;
+      // favTotal = cumulative fav count; diff from previous recorded day
+      const favTotal = parseInt(md.extra[d].favTotal)||0;
+      if (favTotal > 0) {
+        // find previous day's favTotal in this month
+        let prevTotal = 0;
+        for (let pd=d-1; pd>=1; pd--) {
+          if (md.extra[pd] && parseInt(md.extra[pd].favTotal)>0) { prevTotal=parseInt(md.extra[pd].favTotal); break; }
+        }
+        favs += Math.max(0, favTotal - prevTotal);
+      }
+    }
+  }
+  return {coins, jpy, reward, studio, streams, favs, fCoins, fReward, sCoins, sReward};
+}
+
+function fmt(n, t='n') {
+  if (n===null||n===undefined||isNaN(n)) return '—';
+  if (t==='jpy') return '¥'+Math.round(n).toLocaleString();
+  if (t==='usd') return '$'+n.toFixed(2);
+  if (t==='pct') return (n*100).toFixed(0)+'%';
+  return Math.round(n).toLocaleString();
+}
+
+function toast(msg, c='var(--green)') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.color=c;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function saveFlash() {
+  const f=document.getElementById('save-flash');
+  f.classList.add('show');
+  setTimeout(()=>f.classList.remove('show'), 800);
+}
+
+// ─ 共通 ─
+function rebuildCastSelects() {
+  ['oi-cast','rep-filter-cast'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    const was=el.value;
+    if (id==='rep-filter-cast') {
+      el.innerHTML='<option value="all">全員</option>'+store.casts.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    } else {
+      el.innerHTML=store.casts.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    }
+    if (was) el.value=was;
+  });
+  // oi-cast
+  const oic=document.getElementById('oi-cast');
+  if (oic) { const w=oic.value; oic.innerHTML=store.casts.map(c=>`<option value="${c.id}">${c.name}</option>`).join(''); if(w) oic.value=w; }
+  // rep filter
+  const rf=document.getElementById('rep-filter');
+  if (rf) { const w=rf.value; rf.innerHTML='<option value="all">全キャスト合計</option>'+store.casts.map(c=>`<option value="${c.id}">${c.name}</option>`).join(''); if(w) rf.value=w; }
+}
+
+// ═══════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════
+function goLogin() {
+  try { sessionStorage.removeItem('owner_autologin'); } catch(e) {}
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('cast-name-screen').classList.add('hidden');
+  try { document.getElementById('cast-pw-input').value=''; } catch(e) {}
+  document.getElementById('owner-pw-screen').classList.add('hidden');
+  document.getElementById('cast-app').classList.remove('active');
+  document.getElementById('owner-app').classList.remove('active');
+}
+
+function showCastName() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('cast-name-screen').classList.remove('hidden');
+  document.getElementById('cast-pw-error').textContent = '';
+  document.getElementById('cast-pw-error').classList.remove('show');
+  document.getElementById('cast-pw-input').value = '';
+  setTimeout(()=>document.getElementById('cast-pw-input').focus(), 100);
+}
+
+function clearCastPwError() {
+  document.getElementById('cast-pw-error').classList.remove('show');
+  document.getElementById('cast-pw-error').textContent = '';
+}
+
+function directOwnerLogin() {
+  document.getElementById('login-screen').classList.add('hidden');
+  startOwnerApp();
+}
+
+function showOwnerPw() {
+  // ロック中チェック
+  const remMin = getLockRemainingMin();
+  if (remMin > 0) {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('owner-pw-screen').classList.remove('hidden');
+    const errEl = document.getElementById('pw-error');
+    errEl.textContent = `🔒 ${remMin}分間ロックされています`;
+    errEl.classList.add('show');
+    return;
+  }
+  // セッション自動ログイン確認
+  try {
+    if (sessionStorage.getItem('owner_autologin') === '1') {
+      document.getElementById('login-screen').classList.add('hidden');
+      startOwnerApp();
+      return;
+    }
+  } catch(e) {}
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('owner-pw-screen').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('owner-pw-input').focus(), 100);
+}
+
+function checkOwnerPw() {
+  const errEl = document.getElementById('pw-error');
+  // ロック中チェック
+  const remMin = getLockRemainingMin();
+  if (remMin > 0) {
+    errEl.textContent = `🔒 ${remMin}分間ロックされています`;
+    errEl.classList.add('show');
+    document.getElementById('owner-pw-input').value = '';
+    return;
+  }
+  const pw = document.getElementById('owner-pw-input').value;
+  if (pw === ownerPassword) {
+    loginFailCount = 0;
+    lockUntil = 0;
+    errEl.classList.remove('show');
+    errEl.textContent = '';
+    document.getElementById('owner-pw-input').value = '';
+    // 自動ログイン保持
+    if (document.getElementById('autologin-check').checked) {
+      try { sessionStorage.setItem('owner_autologin', '1'); } catch(e) {}
+    }
+    document.getElementById('owner-pw-screen').classList.add('hidden');
+    startOwnerApp();
+  } else {
+    loginFailCount++;
+    document.getElementById('owner-pw-input').value = '';
+    document.getElementById('owner-pw-input').focus();
+    const remaining = 5 - loginFailCount;
+    if (loginFailCount >= 5) {
+      lockUntil = Date.now() + 30 * 60 * 1000; // 30分ロック
+      loginFailCount = 0;
+      errEl.textContent = '🔒 5回失敗しました。30分間ロックします';
+      errEl.classList.add('show');
+    } else {
+      errEl.textContent = `パスワードが違います（あと${remaining}回失敗でロック）`;
+      errEl.classList.add('show');
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+// CAST APP
+// ═══════════════════════════════════════
+let castCurrentId = '';
+let castMonth = new Date().getMonth()+1;
+
+function startCastApp() {
+  const pw = document.getElementById('cast-pw-input').value;
+  const errEl = document.getElementById('cast-pw-error');
+  if (!pw) { errEl.textContent = 'パスワードを入力してください'; errEl.classList.add('show'); return; }
+  // パスワードが一致するキャストを検索
+  const cast = store.casts.find(c => store.castPasswords[c.id] === pw);
+  if (!cast) {
+    errEl.textContent = 'パスワードが違います';
+    errEl.classList.add('show');
+    document.getElementById('cast-pw-input').value = '';
+    document.getElementById('cast-pw-input').focus();
+    return;
+  }
+  castCurrentId = cast.id;
+  errEl.classList.remove('show');
+  document.getElementById('cast-pw-input').value = '';
+  document.getElementById('cast-name-screen').classList.add('hidden');
+  document.getElementById('cast-app').classList.add('active');
+  document.getElementById('cast-header-name').textContent = cast.name;
+  castRenderMonth();
+}
+
+function castChangeMonth(d) {
+  castMonth = Math.min(12, Math.max(1, castMonth+d));
+  castRenderMonth();
+}
+
+function castRenderMonth() {
+  document.getElementById('cast-month-label').textContent = `${castMonth}月`;
+  document.getElementById('cast-header-month').textContent = `${castMonth}月`;
+  castRenderStats();
+  castRenderDays();
+}
+
+function castRenderStats() {
+  const s = calcMonth(castCurrentId, castMonth);
+  document.getElementById('cast-mini-stats').innerHTML = `
+    <div class="mini-stat">
+      <div class="mini-stat-label">コイン（月計）</div>
+      <div class="mini-stat-val" style="color:var(--amber)">${s.coins.toLocaleString()}</div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-label">配信回数（月計）</div>
+      <div class="mini-stat-val" style="color:var(--accent2)">${s.streams||0}<span style="font-size:12px;color:var(--text3);">回</span></div>
+    </div>
+    <div class="mini-stat">
+      <div class="mini-stat-label">お気に入り増加（月計）</div>
+      <div class="mini-stat-val" style="color:var(--green)">+${s.favs||0}</div>
+    </div>
+  `;
+}
+
+function castRenderDays() {
+  const days = MONTH_DAYS[castMonth]||30;
+  const md = getMonthData(castCurrentId, castMonth);
+  const container = document.getElementById('cast-day-cards');
+  container.innerHTML = '';
+
+  for (let d=1; d<=days; d++) {
+    const isF = d<=15;
+    const coins = md.days[d]||0;
+    const ex = md.extra[d]||{};
+    const filled = coins>0||ex.streams>0||ex.favTotal>0||ex.memo;
+
+    // preview chips（コイン数は表示しない）
+    let chips='';
+    if (coins>0) chips+=`<span class="preview-chip chip-coin">${coins.toLocaleString()}</span>`;
+    if (ex.streams>0) chips+=`<span class="preview-chip chip-stream">${ex.streams}回</span>`;
+    if (ex.favTotal>0) chips+=`<span class="preview-chip chip-fav">♡${ex.favTotal.toLocaleString()}</span>`;
+    if (!chips) chips=`<span style="color:var(--text3); font-size:11px;">未入力</span>`;
+
+    const el = document.createElement('div');
+    el.className = `day-card${filled?' filled':''}`;
+    el.id = `dc-${d}`;
+    el.innerHTML = `
+      <div class="day-card-header" onclick="toggleDayCard(${d})">
+        <span class="day-date">${String(castMonth).padStart(2,'0')}/${String(d).padStart(2,'0')}</span>
+        <span class="shime-pip ${isF?'pip-first':'pip-second'}"></span>
+        <span class="day-preview">${chips}</span>
+        <span class="chevron${filled?' open':''}" id="cv-${d}">▼</span>
+      </div>
+      <div class="day-card-body${filled?' open':''}" id="db-${d}">
+        <div>
+          <div class="field-label">💰 獲得コイン数</div>
+          <input type="number" inputmode="numeric" class="field-input f-coin" placeholder="0"
+            value="${coins||''}"
+            oninput="castSave(${d},'coins',this.value)">
+        </div>
+        <div>
+          <div class="field-label">📡 配信回数</div>
+          <input type="number" inputmode="numeric" class="field-input f-stream" placeholder="0"
+            value="${ex.streams||''}"
+            oninput="castSave(${d},'streams',this.value)">
+        </div>
+        <div>
+          <div class="field-label">❤️ お気に入り合計数（現在の数字）</div>
+          <input type="number" inputmode="numeric" class="field-input f-fav" placeholder="例: 1523"
+            value="${ex.favTotal||''}"
+            oninput="castSave(${d},'favTotal',this.value)">
+        </div>
+        <div style="grid-column:1/-1;">
+          <div class="field-label">📝 メモ</div>
+          <input type="text" class="field-input f-memo" placeholder="任意"
+            value="${ex.memo||''}"
+            oninput="castSave(${d},'memo',this.value)">
+        </div>
+      </div>
+    `;
+    container.appendChild(el);
+  }
+}
+
+function toggleDayCard(d) {
+  const body = document.getElementById(`db-${d}`);
+  const cv = document.getElementById(`cv-${d}`);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open');
+  cv.classList.toggle('open');
+  if (!isOpen) {
+    const first = body.querySelector('input');
+    if (first) setTimeout(()=>first.focus(), 50);
+  }
+}
+
+function castSave(day, field, value) {
+  const md = getMonthData(castCurrentId, castMonth);
+  if (field === 'coins') {
+    const c = parseInt(value)||0;
+    if (c>0) md.days[day]=c; else delete md.days[day];
+  } else {
+    if (!md.extra[day]) md.extra[day]={};
+    md.extra[day][field] = value;
+  }
+  // update card state
+  const c = md.days[day]||0;
+  const ex = md.extra[day]||{};
+  const filled = c>0||ex.streams>0||ex.favTotal>0||ex.memo;
+  const card = document.getElementById(`dc-${day}`);
+  if (filled) card.classList.add('filled'); else card.classList.remove('filled');
+  // update preview
+  let chips='';
+  if (c>0) chips+=`<span class="preview-chip chip-coin">${c.toLocaleString()}</span>`;
+  if (ex.streams>0) chips+=`<span class="preview-chip chip-stream">${ex.streams}回</span>`;
+  if (ex.favTotal>0) chips+=`<span class="preview-chip chip-fav">♡${parseInt(ex.favTotal).toLocaleString()}</span>`;
+  if (!chips) chips=`<span style="color:var(--text3); font-size:11px;">未入力</span>`;
+  card.querySelector('.day-preview').innerHTML = chips;
+  castRenderStats();
+  saveFlash();
+  // GASに非同期保存
+  const ex2 = md.extra[day]||{};
+  gasPost('saveExtra', {
+    castId: castCurrentId,
+    month: castMonth,
+    day,
+    streams: parseInt(ex2.streams)||0,
+    favTotal: parseInt(ex2.favTotal)||0,
+    memo: ex2.memo||''
+  }).catch(e=>console.error('保存エラー',e));
+}
+
+function castSaveConfirm() {
+  toast('データを保存しました ✓');
+  setTimeout(()=>goLogin(), 1000);
+}
+
+// ═══════════════════════════════════════
+// OWNER APP
+// ═══════════════════════════════════════
+function startOwnerApp() {
+  document.getElementById('owner-app').classList.add('active');
+  rebuildCastSelects();
+  ownerRenderInput();
+}
+
+function ownerNav(page) {
+  document.querySelectorAll('.owner-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.onav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`owner-page-${page}`).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (page==='input') ownerRenderInput();
+  if (page==='payment') ownerRenderPayment();
+  if (page==='casts') ownerRenderCasts();
+  if (page==='report') ownerRenderReport();
+}
+
+// ─ 売上入力 ─
+function ownerSaveRate() {
+  const id=document.getElementById('oi-cast').value;
+  const m=parseInt(document.getElementById('oi-month').value);
+  const r=parseFloat(document.getElementById('oi-rate').value);
+  const md=getMonthData(id,m);
+  md.rewardRate=r;
+  ownerRenderInput();
+  // 月の全日をGASに更新
+  syncMonthToGAS(id, m);
+}
+function ownerSaveFx() {
+  const id=document.getElementById('oi-cast').value;
+  const m=parseInt(document.getElementById('oi-month').value);
+  const md=getMonthData(id,m);
+  const f1=parseFloat(document.getElementById('oi-fx1').value);
+  const f2=parseFloat(document.getElementById('oi-fx2').value);
+  if (f1>0) md.fx1=f1;
+  if (f2>0) md.fx2=f2;
+  ownerRenderInput();
+  syncMonthToGAS(id, m);
+}
+
+async function syncMonthToGAS(castId, month) {
+  const md = getMonthData(castId, month);
+  const days = Object.keys(md.days);
+  for (const d of days) {
+    await gasPost('saveRecord', {
+      castId, month, day:parseInt(d), coins:md.days[d],
+      rewardRate:md.rewardRate, fx1:md.fx1, fx2:md.fx2
+    });
+  }
+  // 為替・報酬率だけ保存（コイン0でも）
+  if (days.length === 0) {
+    await gasPost('saveRecord', {
+      castId, month, day:0, coins:0,
+      rewardRate:md.rewardRate, fx1:md.fx1, fx2:md.fx2
+    });
+  }
+}
+
+function ownerRenderInput() {
+  const id=document.getElementById('oi-cast')?.value; if(!id) return;
+  const m=parseInt(document.getElementById('oi-month').value);
+  const md=getMonthData(id,m);
+  document.getElementById('oi-rate').value=String(md.rewardRate);
+  document.getElementById('oi-fx1').value=md.fx1||150;
+  document.getElementById('oi-fx2').value=md.fx2||150;
+
+  const s=calcMonth(id,m);
+  const md2=getMonthData(id,m);
+  // 前半・後半それぞれの為替で集計
+  let fCoinsV=0,sCoinsV=0,fRewardFx=0,sRewardFx=0,fRewardAct=0,sRewardAct=0;
+  for(let d=1;d<=(MONTH_DAYS[m]||30);d++){
+    const c=md2.days[d]||0; if(!c) continue;
+    const isF=d<=15;
+    if(isF){ fCoinsV+=c; fRewardFx+=c*0.05*(md2.fx1||150)*md2.rewardRate; fRewardAct+=calcDay(c,true,md2).reward; }
+    else   { sCoinsV+=c; sRewardFx+=c*0.05*(md2.fx2||150)*md2.rewardRate; sRewardAct+=calcDay(c,false,md2).reward; }
+  }
+  document.getElementById('oi-stats').innerHTML=`
+    <div class="stat-box"><div class="stat-box-label">コイン合計</div><div class="stat-box-val" style="color:var(--amber)">${s.coins.toLocaleString()}</div></div>
+    <div class="stat-box"><div class="stat-box-label">円売上</div><div class="stat-box-val" style="color:var(--accent2)">${fmt(s.jpy,'jpy')}</div></div>
+    <div class="stat-box"><div class="stat-box-label">キャスト報酬</div><div class="stat-box-val" style="color:var(--accent2)">${fmt(s.reward,'jpy')}</div></div>
+    <div class="stat-box"><div class="stat-box-label">事務所利益</div><div class="stat-box-val" style="color:var(--teal)">${fmt(s.studio,'jpy')}</div></div>
+    <div class="stat-box" style="border-color:var(--amber)22;background:var(--amber)0d;">
+      <div class="stat-box-label" style="color:var(--amber);">前半締め（1〜15日）</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">${fCoinsV.toLocaleString()} coins</div>
+      <div style="font-size:13px;font-weight:700;color:var(--amber);font-family:'DM Mono',monospace;">前半為替: ${fmt(fRewardFx,'jpy')}</div>
+      <div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;">実際報酬: ${fmt(fRewardAct,'jpy')}</div>
+    </div>
+    <div class="stat-box" style="border-color:var(--teal)22;background:var(--teal)0d;">
+      <div class="stat-box-label" style="color:var(--teal);">後半締め（16〜末日）</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:2px;">${sCoinsV.toLocaleString()} coins</div>
+      <div style="font-size:13px;font-weight:700;color:var(--teal);font-family:'DM Mono',monospace;">後半為替: ${fmt(sRewardFx,'jpy')}</div>
+      <div style="font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;">実際報酬: ${fmt(sRewardAct,'jpy')}</div>
+    </div>
+  `;
+
+  const days=MONTH_DAYS[m]||30;
+  let rows='';
+  for (let d=1; d<=days; d++) {
+    const isF=d<=15;
+    const coins=md.days[d]||'';
+    const ex=md.extra[d]||{};
+    const r=coins?calcDay(coins,isF,md):null;
+    const fx=isF?(md.fx1||150):(md.fx2||150);
+    rows+=`<tr>
+      <td style="color:var(--text2); font-family:'DM Mono',monospace; font-size:12px;">${String(m).padStart(2,'0')}/${String(d).padStart(2,'0')}</td>
+      <td><span style="font-size:10px; padding:2px 6px; border-radius:3px; ${isF?'background:rgba(245,166,35,0.12);color:var(--amber)':'background:rgba(0,212,170,0.1);color:var(--teal)'}">${isF?'前半':'後半'}</span></td>
+      <td><input type="number" style="background:rgba(108,99,255,0.07);border:1px solid transparent;border-radius:5px;color:var(--amber);font-family:'DM Mono',monospace;font-size:13px;font-weight:500;text-align:right;padding:4px 8px;width:110px;outline:none;" placeholder="—" value="${coins}" oninput="ownerSaveCoins('${id}',${m},${d},this.value)"></td>
+      <td style="color:var(--text2);">${r?fmt(r.jpy,'jpy'):'—'}</td>
+      <td style="color:var(--accent2); font-weight:700;">${r?fmt(r.reward,'jpy'):'—'}</td>
+      <td style="color:var(--teal); font-weight:700;">${r?fmt(r.studio,'jpy'):'—'}</td>
+      <td style="color:var(--text3);">${ex.streams||'—'}</td>
+      <td style="color:var(--green);">${ex.favs?'+'+ex.favs:'—'}</td>
+    </tr>`;
+  }
+  // 合計行
+  rows+=`<tr class="tr-total">
+    <td colspan="2">合計</td>
+    <td style="color:var(--amber);">${fmt(s.coins)}</td>
+    <td>${fmt(s.jpy,'jpy')}</td>
+    <td style="color:var(--accent2);">${fmt(s.reward,'jpy')}</td>
+    <td style="color:var(--teal);">${fmt(s.studio,'jpy')}</td>
+    <td style="color:var(--text2);">${s.streams||'—'}</td>
+    <td style="color:var(--green);">+${s.favs||0}</td>
+  </tr>`;
+  // 支払日
+  const nM=m<12?m+1:1; const nY=m<12?2026:2027;
+  rows+=`<tr style="background:var(--bg2);">
+    <td colspan="2" style="font-size:11px; color:var(--text3);">前半支払日</td>
+    <td colspan="3" style="text-align:left;color:var(--amber);font-family:'DM Mono',monospace;font-size:11px;">2026/${String(m).padStart(2,'0')}/30</td>
+    <td colspan="3" style="text-align:left;font-size:11px;color:var(--teal);font-family:'DM Mono',monospace;">${nY}/${String(nM).padStart(2,'0')}/15</td>
+  </tr>`;
+
+  document.getElementById('oi-table').innerHTML=`
+    <table>
+      <thead><tr>
+        <th style="text-align:left;">日付</th><th>締め</th>
+        <th>コイン数</th><th>円売上</th>
+        <th style="color:var(--accent2);">キャスト報酬</th>
+        <th style="color:var(--teal);">事務所利益</th>
+        <th style="color:var(--accent2);">配信回数</th>
+        <th style="color:var(--green);">お気に入り+</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function ownerSaveCoins(id,m,d,val) {
+  const md=getMonthData(id,m);
+  const c=parseInt(val)||0;
+  if (c>0) md.days[d]=c; else delete md.days[d];
+  // GASに非同期保存
+  gasPost('saveRecord', {
+    castId:id, month:m, day:d, coins:c,
+    rewardRate:md.rewardRate, fx1:md.fx1, fx2:md.fx2
+  }).catch(e=>console.error('保存エラー',e));
+}
+
+// ─ 支払い ─
+function ownerRenderPayment() {
+  const m=parseInt(document.getElementById('op-month').value);
+  let html='';
+  ['前半','後半'].forEach((label,idx)=>{
+    const isF=idx===0;
+    const color=isF?'var(--amber)':'var(--teal)';
+    const payDate=isF?`2026/${String(m).padStart(2,'0')}/30`:
+      `${m<12?2026:2027}/${String(m<12?m+1:1).padStart(2,'0')}/15`;
+    html+=`<div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;border:1px solid;border-color:${color}22;background:${color}0d;margin-bottom:8px;">
+        <span style="font-weight:700;color:${color};font-size:13px;">⏰ ${label}締め（${isF?'1〜15日':'16日〜末日'}）</span>
+        <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:12px;color:${color};">支払日: ${payDate}</span>
+      </div>`;
+    let rows=''; let totalR=0, totalS=0, totalFR=0, totalSR=0;
+    store.casts.forEach(cast=>{
+      const md=getMonthData(cast.id,m);
+      let coins=0,reward=0,studio=0,fxFR=0,fxSR=0;
+      for(let d=1;d<=(MONTH_DAYS[m]||30);d++){
+        if((isF&&d>15)||(!isF&&d<=15)) continue;
+        const c=md.days[d]||0; if(!c) continue;
+        const r=calcDay(c,isF,md); if(!r) continue;
+        coins+=c; reward+=r.reward; studio+=r.studio;
+        fxFR += c * 0.05 * (md.fx1||150) * md.rewardRate;
+        fxSR += c * 0.05 * (md.fx2||150) * md.rewardRate;
+      }
+      totalR+=reward; totalS+=studio; totalFR+=fxFR; totalSR+=fxSR;
+      rows+=`<tr>
+        <td>${cast.name}</td>
+        <td>${fmt(coins)}</td>
+        <td><span style="font-size:11px;background:rgba(108,99,255,0.12);color:var(--accent2);padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace;">${fmt(md.rewardRate,'pct')}</span></td>
+        <td style="color:var(--amber);font-weight:700;">${fmt(fxFR,'jpy')}</td>
+        <td style="color:var(--teal);font-weight:700;">${fmt(fxSR,'jpy')}</td>
+        <td style="color:var(--accent2);font-weight:700;">${fmt(reward,'jpy')}</td>
+        <td style="color:var(--green);font-weight:700;">${fmt(studio,'jpy')}</td>
+      </tr>`;
+    });
+    rows+=`<tr class="tr-total"><td>合計</td><td></td><td></td><td style="color:var(--amber);">${fmt(totalFR,'jpy')}</td><td style="color:var(--teal);">${fmt(totalSR,'jpy')}</td><td style="color:var(--accent2);">${fmt(totalR,'jpy')}</td><td style="color:var(--green);">${fmt(totalS,'jpy')}</td></tr>`;
+    html+=`<div class="t-wrap"><table>
+      <thead><tr><th style="text-align:left;">キャスト</th><th>コイン</th><th>報酬率</th><th style="color:var(--amber);">前半為替報酬</th><th style="color:var(--teal);">後半為替報酬</th><th style="color:var(--accent2);">実際報酬</th><th style="color:var(--green);">事務所利益</th></tr></thead>
+      <tbody>${rows}</tbody></table></div></div>`;
+  });
+  let tr=0,ts=0;
+  store.casts.forEach(c=>{const s=calcMonth(c.id,m);tr+=s.reward;ts+=s.studio;});
+  html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;">
+    <div class="stat-box"><div class="stat-box-label">月間 キャスト報酬合計</div><div class="stat-box-val" style="color:var(--accent2);">${fmt(tr,'jpy')}</div></div>
+    <div class="stat-box"><div class="stat-box-label">月間 事務所利益合計</div><div class="stat-box-val" style="color:var(--teal);">${fmt(ts,'jpy')}</div></div>
+  </div>`;
+  document.getElementById('op-content').innerHTML=html;
+}
+
+// ─ キャスト管理 ─
+function ownerRenderCasts() {
+  rebuildCastSelects();
+  let html='';
+  store.casts.forEach(c=>{
+    let total=0; for(let m=1;m<=12;m++) total+=calcMonth(c.id,m).coins;
+    const hasPw = !!store.castPasswords[c.id];
+    html+=`<div class="cast-tile">
+      <button class="cast-tile-del" onclick="deleteCast('${c.id}')">✕</button>
+      <div class="cast-tile-name">${c.name}</div>
+      <div class="cast-tile-sub" style="margin-bottom:10px;">年間 ${total.toLocaleString()} coins</div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <input type="password" id="cpw-${c.id}"
+          placeholder="${hasPw ? '••••••• (変更)' : 'パスワードを設定'}"
+          style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 10px;font-size:12px;width:100%;outline:none;flex:1;"
+          onkeydown="if(event.key==='Enter') saveCastPw('${c.id}')">
+        <button onclick="saveCastPw('${c.id}')"
+          style="background:var(--accent);border:none;border-radius:6px;color:white;padding:6px 10px;font-size:11px;cursor:pointer;white-space:nowrap;font-weight:700;">設定</button>
+      </div>
+      ${hasPw ? `<div style="font-size:10px;color:var(--green);margin-top:4px;">✓ パスワード設定済み</div>` : `<div style="font-size:10px;color:var(--rose);margin-top:4px;">⚠ 未設定</div>`}
+    </div>`;
+  });
+  document.getElementById('owner-cast-grid').innerHTML=html||'<div style="color:var(--text3);">キャストがいません</div>';
+}
+
+function saveCastPw(castId) {
+  const input = document.getElementById('cpw-'+castId);
+  const pw = input.value.trim();
+  if (!pw) { toast('パスワードを入力してください', 'var(--rose)'); return; }
+  if (pw.length < 4) { toast('4文字以上で設定してください', 'var(--rose)'); return; }
+  // 他のキャストと同じPWはNG
+  const duplicate = store.casts.find(c => c.id !== castId && store.castPasswords[c.id] === pw);
+  if (duplicate) { toast('このパスワードは他のキャストが使用中です', 'var(--rose)'); return; }
+  store.castPasswords[castId] = pw;
+  gasPost('saveSettings', { settings: { ['castPw_'+castId]: pw } }).catch(e=>console.error(e));
+  input.value = '';
+  toast('パスワードを設定しました ✓');
+  ownerRenderCasts();
+}
+
+function openAddCast() { document.getElementById('add-cast-modal').classList.add('open'); setTimeout(()=>document.getElementById('new-cast-name').focus(),100); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function addCast() {
+  const name=document.getElementById('new-cast-name').value.trim();
+  if (!name) return;
+  if (store.casts.find(c=>c.name===name)) { toast('同じ名前があります','var(--rose)'); return; }
+  const id='cast_'+Date.now();
+  store.casts.push({id,name});
+  store.records[id]={};
+  gasPost('addCast', {id, name}).catch(e=>console.error(e));
+  closeModal('add-cast-modal');
+  document.getElementById('new-cast-name').value='';
+  rebuildCastSelects();
+  ownerRenderCasts();
+  toast(`${name} を追加しました ✓`);
+}
+
+function deleteCast(id) {
+  if (!confirm('このキャストのデータをすべて削除しますか？')) return;
+  store.casts=store.casts.filter(c=>c.id!==id);
+  delete store.records[id];
+  gasPost('deleteCast', {id}).catch(e=>console.error(e));
+  rebuildCastSelects();
+  ownerRenderCasts();
+  toast('削除しました','var(--rose)');
+}
+
+// ─ 集計レポート ─
+function ownerRenderReport() {
+  rebuildCastSelects();
+  let tc=0,tj=0,tr=0,ts=0;
+  store.casts.forEach(cast=>{ for(let m=1;m<=12;m++){const s=calcMonth(cast.id,m);tc+=s.coins;tj+=s.jpy;tr+=s.reward;ts+=s.studio;} });
+  document.getElementById('rep-totals').innerHTML=`
+    <div class="stat-box"><div class="stat-box-label">年間コイン</div><div class="stat-box-val" style="color:var(--amber)">${tc.toLocaleString()}</div></div>
+    <div class="stat-box"><div class="stat-box-label">年間円売上</div><div class="stat-box-val" style="color:var(--accent2)">${fmt(tj,'jpy')}</div></div>
+    <div class="stat-box"><div class="stat-box-label">キャスト報酬計</div><div class="stat-box-val" style="color:var(--accent2)">${fmt(tr,'jpy')}</div></div>
+    <div class="stat-box"><div class="stat-box-label">事務所利益計</div><div class="stat-box-val" style="color:var(--teal)">${fmt(ts,'jpy')}</div></div>
+  `;
+  // 棒グラフ
+  const mCoins=Array.from({length:12},(_,i)=>{let c=0;store.casts.forEach(cast=>c+=calcMonth(cast.id,i+1).coins);return c;});
+  const mx=Math.max(...mCoins,1);
+  let chart='<div class="bar-chart">';
+  mCoins.forEach((c,i)=>{
+    const h=Math.max((c/mx)*80,0);
+    chart+=`<div class="bar-col">
+      <div class="bar-val">${c?Math.round(c/1000)+'k':''}</div>
+      <div class="bar" style="height:${h}px;background:${c?'var(--accent)':'var(--border)'};opacity:${c?1:0.3};"></div>
+      <div class="bar-label">${i+1}</div>
+    </div>`;
+  });
+  document.getElementById('rep-chart').innerHTML=chart+'</div>';
+  // キャスト別
+  let castRows='';
+  store.casts.forEach(cast=>{
+    let c=0,j=0,r=0,s=0,st=0,f=0,active=0;
+    for(let m=1;m<=12;m++){const x=calcMonth(cast.id,m);c+=x.coins;j+=x.jpy;r+=x.reward;s+=x.studio;st+=x.streams;f+=x.favs;if(x.coins>0)active++;}
+    castRows+=`<tr><td>${cast.name}</td><td>${c.toLocaleString()}</td><td>${fmt(j,'jpy')}</td><td style="color:var(--accent2);">${fmt(r,'jpy')}</td><td style="color:var(--teal);">${fmt(s,'jpy')}</td><td style="color:var(--accent2);">${st||'—'}</td><td style="color:var(--green);">+${f||0}</td><td style="color:var(--text3);">${active}ヶ月</td></tr>`;
+  });
+  document.getElementById('rep-cast-table').innerHTML=`<table><thead><tr><th style="text-align:left;">名前</th><th>コイン</th><th>円売上</th><th style="color:var(--accent2);">報酬</th><th style="color:var(--teal);">事務所</th><th style="color:var(--accent2);">配信回数</th><th style="color:var(--green);">お気に入り</th><th>稼働月</th></tr></thead><tbody>${castRows}</tbody></table>`;
+  renderRepDetail();
+}
+
+function renderRepDetail() {
+  const filter=document.getElementById('rep-filter')?.value||'all';
+  const targets=filter==='all'?store.casts:store.casts.filter(c=>c.id===filter);
+  let rows=''; let gc=0,gj=0,gr=0,gs=0;
+  for(let m=1;m<=12;m++){
+    let c=0,j=0,r=0,s=0;
+    targets.forEach(cast=>{const x=calcMonth(cast.id,m);c+=x.coins;j+=x.jpy;r+=x.reward;s+=x.studio;});
+    gc+=c;gj+=j;gr+=r;gs+=s;
+    rows+=`<tr><td>${m}月</td><td>${c?c.toLocaleString():'—'}</td><td>${j?fmt(j,'jpy'):'—'}</td><td style="color:var(--accent2);">${r?fmt(r,'jpy'):'—'}</td><td style="color:var(--teal);">${s?fmt(s,'jpy'):'—'}</td></tr>`;
+  }
+  rows+=`<tr class="tr-total"><td>合計</td><td>${gc.toLocaleString()}</td><td>${fmt(gj,'jpy')}</td><td style="color:var(--accent2);">${fmt(gr,'jpy')}</td><td style="color:var(--teal);">${fmt(gs,'jpy')}</td></tr>`;
+  document.getElementById('rep-detail').innerHTML=`<table><thead><tr><th style="text-align:left;">月</th><th>コイン</th><th>円売上</th><th style="color:var(--accent2);">キャスト報酬</th><th style="color:var(--teal);">事務所利益</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ─ パスワード変更 ─
+function changePassword() {
+  const old=document.getElementById('pw-old').value;
+  const nw=document.getElementById('pw-new').value;
+  const nw2=document.getElementById('pw-new2').value;
+  const msg=document.getElementById('pw-change-msg');
+  if (old!==ownerPassword){msg.style.color='var(--rose)';msg.textContent='現在のパスワードが違います';return;}
+  if (nw.length<6){msg.style.color='var(--rose)';msg.textContent='新パスワードは6文字以上';return;}
+  if (nw!==nw2){msg.style.color='var(--rose)';msg.textContent='確認パスワードが一致しません';return;}
+  ownerPassword=nw;
+  gasPost('saveSettings', {settings:{ownerPassword:nw}}).catch(e=>console.error(e));
+  ['pw-old','pw-new','pw-new2'].forEach(id=>document.getElementById(id).value='');
+  msg.style.color='var(--green)';msg.textContent='パスワードを変更しました ✓';
+  toast('パスワードを変更しました ✓');
+}
+
+// ─ CSVエクスポート ─
+function exportCSV() {
+  let csv='\uFEFF月,キャスト,コイン数,円売上,キャスト報酬,事務所利益,配信回数,お気に入り増加\n';
+  for(let m=1;m<=12;m++){
+    store.casts.forEach(cast=>{
+      const s=calcMonth(cast.id,m);
+      if(s.coins>0) csv+=`${m}月,${cast.name},${s.coins},${Math.round(s.jpy)},${Math.round(s.reward)},${Math.round(s.studio)},${s.streams},${s.favs}\n`;
+    });
+  }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`studio_report_2026.csv`; a.click();
+  toast('CSVを出力しました ✓');
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+// 初回ロード
+document.addEventListener('DOMContentLoaded', async () => {
+  showLoading('データを読み込んでいます...');
+  const ok = await loadFromGAS();
+  if (!ok) {
+    hideLoading();
+    // GASエラー時はオフラインで起動
+    console.warn('GAS接続失敗。オフラインモードで起動します。');
+    store.casts = [{ id: 'mao', name: 'mao' }, { id: 'sara', name: 'sara' }, { id: 'mia', name: 'mia' }];
+    store.records = {
+      mao: {
+        1: { rewardRate:0.5, fx1:150, fx2:150, days:{4:6466,7:7694,9:9526,10:4901,12:6100,13:3062,15:10046,16:4877,17:13495,18:14981,20:15,21:3697,24:10791,25:11145,27:10611,29:10090,30:10421,31:12763}, extra:{} },
+        2: { rewardRate:0.8, fx1:152, fx2:152, days:{6:2952,7:7044,8:7890,10:7874,12:7504,14:8269,15:14993,17:4008,18:2464,19:7014,21:14352,23:11056,25:6797,26:7424,28:8579}, extra:{} },
+        3: { rewardRate:0.8, fx1:147, fx2:147, days:{1:10513}, extra:{} }
+      },
+      sara: {
+        1: { rewardRate:0.75, fx1:154.77, fx2:154.77, days:{3:10210,5:7391,6:10037,9:24243,11:8404,12:7574,14:20,15:5230,16:9203,17:8037,18:5287,21:7859,22:7270,23:10768,24:22341,25:9695,26:13633,28:6254}, extra:{} },
+        2: { rewardRate:0.8, fx1:152.7, fx2:152.7, days:{7:13906,8:13861,9:5525,10:10276,14:17389,15:1650,16:6892,17:16147,18:9447,20:15490,24:14878,26:1523,27:11859,28:100}, extra:{} }
+      },
+      mia: {
+        1: { rewardRate:0.5, fx1:150, fx2:150, days:{8:13205,9:9115,10:15869,11:11877,14:17424,15:7490,17:18684,18:18614,20:8075,21:8158,23:659,24:10547,25:420}, extra:{} },
+        2: { rewardRate:0.5, fx1:147, fx2:147, days:{28:1660}, extra:{} }
+      }
+    };
+  }
+  rebuildCastSelects();
+});
+
+document.addEventListener('keydown', e=>{
+  if (e.key==='Enter') {
+    if (!document.getElementById('owner-pw-screen').classList.contains('hidden')) checkOwnerPw();
+    if (!document.getElementById('cast-name-screen').classList.contains('hidden')) startCastApp();
+    if (!document.getElementById('add-cast-modal').classList.contains('hidden') && document.getElementById('add-cast-modal').classList.contains('open')) addCast();
+  }
+});
+</script>
+</body>
+</html>
