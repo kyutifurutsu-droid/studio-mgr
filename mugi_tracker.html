@@ -7,163 +7,216 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a0f;
-    --surface: #12121a;
-    --surface2: #1a1a26;
-    --border: #2a2a40;
-    --accent: #ff6b9d;
-    --accent2: #c77dff;
-    --accent3: #00d4ff;
-    --gold: #ffd700;
-    --text: #e8e8f0;
-    --text2: #8888aa;
-    --success: #00e676;
-    --danger: #ff5050;
-    --radius: 16px;
+    --bg:#0a0a0f; --surface:#12121a; --surface2:#1a1a26; --border:#2a2a40;
+    --accent:#ff6b9d; --accent2:#c77dff; --accent3:#00d4ff; --gold:#ffd700;
+    --text:#e8e8f0; --text2:#8888aa; --success:#00e676; --danger:#ff5050; --radius:16px;
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Noto Sans JP', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-  body::before {
-    content:'';
-    position:fixed;
-    inset:0;
-    background:
-      radial-gradient(ellipse 60% 40% at 15% 20%, rgba(255,107,157,0.07) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 50% at 85% 70%, rgba(199,125,255,0.07) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 40% at 50% 100%, rgba(0,212,255,0.05) 0%, transparent 60%);
-    pointer-events:none;
-    z-index:0;
-  }
-  .container { max-width:980px; margin:0 auto; padding:36px 18px 80px; position:relative; z-index:1; }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;inset:0;background:
+    radial-gradient(ellipse 60% 40% at 15% 20%,rgba(255,107,157,.07) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 50% at 85% 70%,rgba(199,125,255,.07) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 40% at 50% 100%,rgba(0,212,255,.05) 0%,transparent 60%);
+    pointer-events:none;z-index:0;}
+  .container{max-width:980px;margin:0 auto;padding:24px 14px 80px;position:relative;z-index:1;}
 
   /* HEADER */
-  header { text-align:center; margin-bottom:32px; animation:fadeDown 0.6s ease; }
-  .header-tag { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:4px; color:var(--accent); text-transform:uppercase; margin-bottom:10px; }
-  header h1 { font-family:'Playfair Display',serif; font-size:clamp(2rem,6vw,3.2rem); font-weight:900; background:linear-gradient(135deg,#ff6b9d 0%,#c77dff 50%,#00d4ff 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1.1; }
-  .cast-chip { display:inline-block; margin-top:10px; background:rgba(255,107,157,0.15); border:1px solid rgba(255,107,157,0.3); border-radius:20px; padding:5px 18px; font-size:0.85rem; color:var(--accent); font-weight:700; letter-spacing:1px; }
+  header{text-align:center;margin-bottom:18px;animation:fadeDown .6s ease;}
+  .header-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:6px;display:block;}
+  header h1{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,5vw,2.5rem);font-weight:900;background:linear-gradient(135deg,#ff6b9d 0%,#c77dff 50%,#00d4ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;}
+  .cast-chip{display:inline-block;margin-top:6px;background:rgba(255,107,157,.15);border:1px solid rgba(255,107,157,.3);border-radius:20px;padding:4px 14px;font-size:.81rem;color:var(--accent);font-weight:700;}
+
+  /* ===== 月ドロップダウン ===== */
+  .month-select-wrap{display:flex;align-items:center;gap:10px;margin-bottom:16px;animation:fadeUp .6s ease .05s both;}
+  .month-select-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--text2);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;}
+  .month-select{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 36px 9px 14px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.85rem;font-weight:700;cursor:pointer;outline:none;transition:border-color .2s,box-shadow .2s;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238888aa' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;min-width:150px;}
+  .month-select:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(199,125,255,.12);}
+  .month-select option{background:var(--surface);color:var(--text);}
+  .month-nav-btns{display:flex;gap:5px;margin-left:auto;}
+  .month-nav-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 12px;color:var(--text2);font-family:'JetBrains Mono',monospace;font-size:.8rem;cursor:pointer;transition:all .2s;}
+  .month-nav-btn:hover{border-color:var(--accent2);color:var(--text);}
+  .month-current-btn{background:rgba(255,107,157,.12);border:1px solid rgba(255,107,157,.3);border-radius:8px;padding:7px 12px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.75rem;cursor:pointer;transition:all .2s;font-weight:700;}
+  .month-current-btn:hover{background:rgba(255,107,157,.2);}
 
   /* STATS */
-  .stats-bar { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:28px; animation:fadeUp 0.6s ease 0.1s both; }
-  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; transition:transform 0.2s,border-color 0.2s; }
-  .stat-card:hover { transform:translateY(-2px); border-color:var(--accent2); }
-  .stat-val { font-family:'JetBrains Mono',monospace; font-size:1.35rem; font-weight:700; color:var(--accent); }
-  .stat-val.green { color:var(--success); }
-  .stat-val.blue { color:var(--accent3); }
-  .stat-val.gold { color:var(--gold); }
-  .stat-lbl { font-size:0.67rem; color:var(--text2); letter-spacing:0.5px; margin-top:4px; }
+  .stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(98px,1fr));gap:7px;margin-bottom:16px;animation:fadeUp .6s ease .1s both;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 8px;text-align:center;transition:transform .2s,border-color .2s;}
+  .stat-card:hover{transform:translateY(-2px);border-color:var(--accent2);}
+  .stat-val{font-family:'JetBrains Mono',monospace;font-size:1.15rem;font-weight:700;color:var(--accent);}
+  .stat-val.green{color:var(--success);} .stat-val.blue{color:var(--accent3);} .stat-val.gold{color:var(--gold);} .stat-val.purple{color:var(--accent2);}
+  .stat-lbl{font-size:.59rem;color:var(--text2);margin-top:3px;line-height:1.3;}
 
-  /* TABS */
-  .tabs { display:flex; gap:4px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:4px; margin-bottom:22px; animation:fadeUp 0.6s ease 0.2s both; }
-  .tab-btn { flex:1; background:none; border:none; padding:10px; color:var(--text2); font-family:'Noto Sans JP',sans-serif; font-size:0.82rem; cursor:pointer; border-radius:8px; transition:all 0.2s; font-weight:500; }
-  .tab-btn.active { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; }
-  .tab-btn:hover:not(.active) { background:var(--surface2); color:var(--text); }
+  /* MAIN TABS */
+  .tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:4px;margin-bottom:15px;animation:fadeUp .6s ease .15s both;}
+  .tab-btn{flex:1;background:none;border:none;padding:9px 4px;color:var(--text2);font-family:'Noto Sans JP',sans-serif;font-size:.76rem;cursor:pointer;border-radius:7px;transition:all .2s;font-weight:500;white-space:nowrap;}
+  .tab-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+  .tab-btn:hover:not(.active){background:var(--surface2);color:var(--text);}
 
   /* PANELS */
-  .panel { display:none; animation:fadeUp 0.4s ease; }
-  .panel.active { display:block; }
+  .panel{display:none;animation:fadeUp .4s ease;}
+  .panel.active{display:block;}
 
   /* FORM */
-  .form-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:26px; }
-  .form-section { margin-bottom:22px; }
-  .section-title { font-family:'JetBrains Mono',monospace; font-size:0.67rem; letter-spacing:3px; color:var(--accent); text-transform:uppercase; margin-bottom:13px; display:flex; align-items:center; gap:10px; }
-  .section-title::after { content:''; flex:1; height:1px; background:linear-gradient(to right,var(--border),transparent); }
-  .form-grid { display:grid; gap:11px; }
-  .form-grid.cols2 { grid-template-columns:1fr 1fr; }
-  .form-grid.cols3 { grid-template-columns:1fr 1fr 1fr; }
-  .field { display:flex; flex-direction:column; gap:5px; }
-  label { font-size:0.7rem; color:var(--text2); letter-spacing:0.5px; font-weight:500; }
-  input, textarea {
-    background:var(--surface2); border:1px solid var(--border); border-radius:10px;
-    padding:10px 13px; color:var(--text); font-family:'Noto Sans JP',sans-serif;
-    font-size:0.87rem; transition:border-color 0.2s,box-shadow 0.2s; outline:none;
-  }
-  input:focus, textarea:focus { border-color:var(--accent2); box-shadow:0 0 0 3px rgba(199,125,255,0.12); }
-  input[type="number"] { font-family:'JetBrains Mono',monospace; }
-  textarea { resize:vertical; min-height:66px; }
-  .computed-field { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 13px; font-family:'JetBrains Mono',monospace; font-size:0.87rem; color:var(--success); min-height:40px; display:flex; align-items:center; }
+  .form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
+  .form-section{margin-bottom:16px;}
+  .section-title{font-family:'JetBrains Mono',monospace;font-size:.63rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .section-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--border),transparent);}
+  .form-grid{display:grid;gap:9px;}
+  .form-grid.cols2{grid-template-columns:1fr 1fr;}
+  .form-grid.cols3{grid-template-columns:1fr 1fr 1fr;}
+  .field{display:flex;flex-direction:column;gap:4px;}
+  label{font-size:.67rem;color:var(--text2);letter-spacing:.4px;font-weight:500;}
+  input,textarea{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:.85rem;transition:border-color .2s,box-shadow .2s;outline:none;}
+  input:focus,textarea:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(199,125,255,.12);}
+  input[type="number"]{font-family:'JetBrains Mono',monospace;}
 
-  /* EDIT MODE BANNER */
-  .edit-banner { background:rgba(199,125,255,0.1); border:1px solid rgba(199,125,255,0.3); border-radius:10px; padding:10px 16px; margin-bottom:16px; font-size:0.82rem; color:var(--accent2); display:none; align-items:center; gap:10px; }
-  .edit-banner.show { display:flex; }
-  .edit-banner button { background:none; border:none; color:var(--text2); cursor:pointer; font-size:0.8rem; margin-left:auto; padding:3px 8px; border-radius:6px; }
-  .edit-banner button:hover { color:var(--danger); }
+  /* ゴール欄：改行反映・自由に伸ばせる */
+  #f-goal{
+    min-height:120px;
+    resize:vertical;
+    overflow-y:auto;
+    line-height:1.7;
+    white-space:pre-wrap;
+  }
+  #f-plan{min-height:72px;resize:vertical;}
+
+  .computed-field{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:9px 11px;font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--success);min-height:38px;display:flex;align-items:center;}
+
+  /* EDIT BANNER */
+  .edit-banner{background:rgba(199,125,255,.1);border:1px solid rgba(199,125,255,.3);border-radius:9px;padding:8px 13px;margin-bottom:11px;font-size:.79rem;color:var(--accent2);display:none;align-items:center;gap:10px;}
+  .edit-banner.show{display:flex;}
+  .edit-banner button{background:none;border:none;color:var(--text2);cursor:pointer;font-size:.75rem;margin-left:auto;padding:2px 7px;border-radius:5px;font-family:'Noto Sans JP',sans-serif;}
+  .edit-banner button:hover{color:var(--danger);}
 
   /* BUTTONS */
-  .btn-row { display:flex; gap:10px; margin-top:22px; }
-  .btn { padding:12px 22px; border:none; border-radius:10px; font-family:'Noto Sans JP',sans-serif; font-size:0.87rem; font-weight:700; cursor:pointer; transition:all 0.2s; letter-spacing:0.5px; }
-  .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; flex:1; }
-  .btn-primary:hover { opacity:0.88; transform:translateY(-1px); box-shadow:0 8px 20px rgba(255,107,157,0.3); }
-  .btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
-  .btn-secondary { background:var(--surface2); color:var(--text2); border:1px solid var(--border); }
-  .btn-secondary:hover { border-color:var(--accent2); color:var(--text); }
+  .btn-row{display:flex;gap:9px;margin-top:15px;}
+  .btn{padding:10px 16px;border:none;border-radius:9px;font-family:'Noto Sans JP',sans-serif;font-size:.83rem;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.4px;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;flex:1;}
+  .btn-primary:hover{opacity:.88;transform:translateY(-1px);box-shadow:0 7px 18px rgba(255,107,157,.3);}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+  .btn-secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+  .btn-secondary:hover{border-color:var(--accent2);color:var(--text);}
 
-  /* RECORDS */
-  .records-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:13px; gap:10px; flex-wrap:wrap; }
-  .records-count { font-family:'JetBrains Mono',monospace; font-size:0.77rem; color:var(--text2); }
-  .search-box { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 13px; color:var(--text); font-size:0.82rem; font-family:'Noto Sans JP',sans-serif; outline:none; transition:border-color 0.2s; min-width:160px; }
-  .search-box:focus { border-color:var(--accent2); }
-  .records-list { display:flex; flex-direction:column; gap:9px; }
+  /* ===== 履歴リスト（見やすいテーブル風） ===== */
+  .records-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:9px;flex-wrap:wrap;}
+  .records-count{font-family:'JetBrains Mono',monospace;font-size:.73rem;color:var(--text2);}
+  .search-box{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 11px;color:var(--text);font-size:.79rem;font-family:'Noto Sans JP',sans-serif;outline:none;transition:border-color .2s;min-width:130px;}
+  .search-box:focus{border-color:var(--accent2);}
 
-  .record-card { background:var(--surface); border:1px solid var(--border); border-radius:13px; padding:16px 18px; transition:border-color 0.2s,transform 0.2s; position:relative; overflow:hidden; }
-  .record-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(to bottom,var(--accent),var(--accent2)); border-radius:3px 0 0 3px; }
-  .record-card:hover { border-color:var(--accent2); transform:translateY(-1px); }
-  .record-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
-  .record-date { font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--accent); letter-spacing:1px; }
-  .record-title { font-size:0.92rem; font-weight:700; color:var(--text); margin-top:3px; }
-  .record-actions { display:flex; gap:4px; flex-shrink:0; }
-  .record-btn { background:none; border:none; cursor:pointer; font-size:0.85rem; padding:4px 8px; border-radius:6px; transition:background 0.2s,color 0.2s; color:var(--text2); }
-  .record-btn.edit:hover { background:rgba(199,125,255,0.15); color:var(--accent2); }
-  .record-btn.del:hover { background:rgba(255,80,80,0.15); color:var(--danger); }
+  /* テーブル形式のリスト */
+  .records-table{width:100%;border-collapse:separate;border-spacing:0 5px;}
+  .records-table thead tr th{
+    font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--text2);
+    letter-spacing:.5px;text-transform:uppercase;padding:6px 10px;
+    background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+    white-space:nowrap;text-align:left;
+  }
+  .records-table thead tr th:first-child{border-left:1px solid var(--border);border-radius:8px 0 0 8px;}
+  .records-table thead tr th:last-child{border-right:1px solid var(--border);border-radius:0 8px 8px 0;}
 
-  .record-pills { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
-  .pill { font-family:'JetBrains Mono',monospace; font-size:0.67rem; padding:3px 9px; border-radius:20px; font-weight:700; }
-  .pill-pink { background:rgba(255,107,157,0.15); color:var(--accent); border:1px solid rgba(255,107,157,0.3); }
-  .pill-purple { background:rgba(199,125,255,0.15); color:var(--accent2); border:1px solid rgba(199,125,255,0.3); }
-  .pill-blue { background:rgba(0,212,255,0.12); color:var(--accent3); border:1px solid rgba(0,212,255,0.25); }
-  .pill-gold { background:rgba(255,215,0,0.12); color:var(--gold); border:1px solid rgba(255,215,0,0.25); }
-  .pill-green { background:rgba(0,230,118,0.12); color:var(--success); border:1px solid rgba(0,230,118,0.25); }
+  .records-table tbody tr{cursor:pointer;transition:transform .15s;}
+  .records-table tbody tr:hover{transform:translateX(2px);}
+  .records-table tbody tr td{
+    background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+    padding:10px 10px;vertical-align:middle;white-space:nowrap;
+  }
+  .records-table tbody tr td:first-child{border-left:1px solid var(--border);border-radius:9px 0 0 9px;position:relative;}
+  .records-table tbody tr td:first-child::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,var(--accent),var(--accent2));border-radius:3px 0 0 3px;}
+  .records-table tbody tr td:last-child{border-right:1px solid var(--border);border-radius:0 9px 9px 0;}
+  .records-table tbody tr:hover td{border-color:var(--accent2);}
 
-  .empty-state { text-align:center; padding:50px 20px; color:var(--text2); }
-  .empty-state .emoji { font-size:2.6rem; margin-bottom:10px; }
+  .td-date{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--accent);font-weight:700;}
+  .td-time{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--text2);}
+  .td-title{font-size:.85rem;font-weight:700;color:var(--text);max-width:140px;overflow:hidden;text-overflow:ellipsis;}
+  .td-dur{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--accent3);}
+  .td-coins{font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--gold);font-weight:700;}
+  .td-usd{font-family:'JetBrains Mono',monospace;font-size:.76rem;color:var(--success);font-weight:700;}
+  .td-fav{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--accent2);}
+  .td-paid{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--accent);}
+  .td-actions{display:flex;gap:3px;}
+  .record-btn{background:none;border:none;cursor:pointer;font-size:.78rem;padding:3px 6px;border-radius:5px;transition:background .2s,color .2s;color:var(--text2);}
+  .record-btn.edit:hover{background:rgba(199,125,255,.15);color:var(--accent2);}
+  .record-btn.del:hover{background:rgba(255,80,80,.15);color:var(--danger);}
+
+  /* モバイル：テーブルをカード表示に切り替え */
+  .mobile-records{display:none;flex-direction:column;gap:7px;}
+  .mobile-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:12px 14px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .15s;}
+  .mobile-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,var(--accent),var(--accent2));border-radius:3px 0 0 3px;}
+  .mobile-card:hover{border-color:var(--accent2);transform:translateX(2px);}
+  .mc-top{display:flex;justify-content:space-between;align-items:flex-start;}
+  .mc-date{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent);font-weight:700;}
+  .mc-time{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--text2);margin-top:1px;}
+  .mc-title{font-size:.88rem;font-weight:700;color:var(--text);margin-top:4px;}
+  .mc-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px;}
+  .mc-num{background:var(--surface2);border-radius:7px;padding:6px 8px;text-align:center;}
+  .mc-num .nv{font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:700;}
+  .mc-num .nl{font-size:.58rem;color:var(--text2);margin-top:1px;}
+  .mc-actions{display:flex;gap:3px;flex-shrink:0;}
+
+  @media(max-width:600px){
+    .desktop-table{display:none!important;}
+    .mobile-records{display:flex!important;}
+  }
+  @media(min-width:601px){
+    .mobile-records{display:none!important;}
+    .desktop-table{display:block!important;}
+  }
+
+  /* TOTAL */
+  .total-section-title{font-family:'JetBrains Mono',monospace;font-size:.63rem;letter-spacing:3px;color:var(--accent2);text-transform:uppercase;margin:15px 0 10px;display:flex;align-items:center;gap:9px;}
+  .total-section-title::after{content:'';flex:1;height:1px;background:linear-gradient(to right,var(--border),transparent);}
+  .total-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(98px,1fr));gap:7px;margin-bottom:12px;}
+  .monthly-list{display:flex;flex-direction:column;gap:6px;}
+  .monthly-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;transition:border-color .2s;}
+  .monthly-row:hover{border-color:var(--accent2);}
+  .monthly-month{font-family:'JetBrains Mono',monospace;font-size:.81rem;font-weight:700;color:var(--text);}
+  .monthly-pills{display:flex;gap:5px;flex-wrap:wrap;}
+  .pill{font-family:'JetBrains Mono',monospace;font-size:.62rem;padding:3px 8px;border-radius:20px;font-weight:700;}
+  .pill-pink{background:rgba(255,107,157,.15);color:var(--accent);border:1px solid rgba(255,107,157,.3);}
+  .pill-purple{background:rgba(199,125,255,.15);color:var(--accent2);border:1px solid rgba(199,125,255,.3);}
+  .pill-blue{background:rgba(0,212,255,.12);color:var(--accent3);border:1px solid rgba(0,212,255,.25);}
+  .pill-gold{background:rgba(255,215,0,.12);color:var(--gold);border:1px solid rgba(255,215,0,.25);}
+  .pill-green{background:rgba(0,230,118,.12);color:var(--success);border:1px solid rgba(0,230,118,.25);}
+
+  .empty-state{text-align:center;padding:36px 20px;color:var(--text2);}
+  .empty-state .emoji{font-size:2rem;margin-bottom:8px;}
+  .empty-state p{font-size:.82rem;}
 
   /* LOADING */
-  .loading-overlay { position:fixed; inset:0; background:rgba(10,10,15,0.85); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:200; gap:14px; }
-  .loading-overlay.hidden { display:none; }
-  .spinner { width:38px; height:38px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
-  .loading-text { color:var(--text2); font-size:0.84rem; }
+  .loading-overlay{position:fixed;inset:0;background:rgba(10,10,15,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:12px;}
+  .loading-overlay.hidden{display:none;}
+  .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+  .loading-text{color:var(--text2);font-size:.8rem;}
 
   /* MODAL */
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(6px); z-index:100; display:flex; align-items:center; justify-content:center; padding:20px; animation:fadeIn 0.2s ease; }
-  .modal-overlay.hidden { display:none; }
-  .modal { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:26px; width:100%; max-width:580px; max-height:85vh; overflow-y:auto; animation:scaleIn 0.25s ease; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
-  .modal-title { font-family:'Playfair Display',serif; font-size:1.35rem; font-weight:700; margin-bottom:16px; background:linear-gradient(135deg,var(--accent),var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-  .detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .detail-item.wide { grid-column:1/-1; }
-  .d-lbl { font-size:0.68rem; color:var(--text2); margin-bottom:3px; }
-  .d-val { font-size:0.88rem; color:var(--text); font-weight:500; }
-  .d-val.mono { font-family:'JetBrains Mono',monospace; }
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;padding:18px;animation:fadeIn .2s ease;}
+  .modal-overlay.hidden{display:none;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;width:100%;max-width:540px;max-height:85vh;overflow-y:auto;animation:scaleIn .25s ease;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+  .modal-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:13px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .detail-item.wide{grid-column:1/-1;}
+  .d-lbl{font-size:.64rem;color:var(--text2);margin-bottom:3px;}
+  .d-val{font-size:.84rem;color:var(--text);font-weight:500;}
+  .d-val.mono{font-family:'JetBrains Mono',monospace;}
+  /* ゴール表示：改行反映 */
+  .d-val.goal-val{font-size:.9rem;line-height:1.75;white-space:pre-wrap;word-break:break-word;}
 
   /* TOAST */
-  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; padding:11px 22px; border-radius:50px; font-size:0.83rem; font-weight:700; z-index:999; transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1); pointer-events:none; box-shadow:0 10px 28px rgba(255,107,157,0.35); white-space:nowrap; }
-  .toast.show { transform:translateX(-50%) translateY(0); }
-  .toast.error { background:linear-gradient(135deg,#ff5050,#ff8c00); }
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:9px 18px;border-radius:50px;font-size:.79rem;font-weight:700;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;box-shadow:0 9px 26px rgba(255,107,157,.35);white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .toast.error{background:linear-gradient(135deg,#ff5050,#ff8c00);}
 
-  @keyframes fadeDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
-  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-  @keyframes scaleIn { from{opacity:0;transform:scale(0.93)} to{opacity:1;transform:scale(1)} }
-  @keyframes spin { to{transform:rotate(360deg)} }
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes scaleIn{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
 
-  @media(max-width:560px) {
-    .form-grid.cols2,.form-grid.cols3 { grid-template-columns:1fr; }
-    .detail-grid { grid-template-columns:1fr; }
-    .form-card { padding:18px; }
+  @media(max-width:540px){
+    .form-grid.cols2,.form-grid.cols3{grid-template-columns:1fr;}
+    .detail-grid{grid-template-columns:1fr;}
+    .form-card{padding:13px;}
+    .tabs{flex-wrap:wrap;}
   }
 </style>
 </head>
@@ -176,28 +229,41 @@
 
 <div class="container">
   <header>
-    <div class="header-tag">✦ Cast Performance Log</div>
+    <span class="header-tag">✦ Cast Performance Log</span>
     <h1>LIVE CAST TRACKER</h1>
     <div class="cast-chip">🎙️ むぎ</div>
   </header>
 
-  <div class="stats-bar">
-    <div class="stat-card"><div class="stat-val" id="s-total">0</div><div class="stat-lbl">配信回数</div></div>
-    <div class="stat-card"><div class="stat-val blue" id="s-hours">0h</div><div class="stat-lbl">累計配信時間</div></div>
-    <div class="stat-card"><div class="stat-val gold" id="s-coins">0</div><div class="stat-lbl">累計コイン</div></div>
-    <div class="stat-card"><div class="stat-val green" id="s-usd">$0</div><div class="stat-lbl">累計売上(USD)</div></div>
-    <div class="stat-card"><div class="stat-val" id="s-fav">0</div><div class="stat-lbl">最高お気に入り</div></div>
+  <!-- 月ドロップダウン -->
+  <div class="month-select-wrap">
+    <span class="month-select-label">📅 月</span>
+    <select class="month-select" id="monthSelect" onchange="selectMonth(this.value)"></select>
+    <div class="month-nav-btns">
+      <button class="month-nav-btn" onclick="changeMonthDelta(-1)">◀</button>
+      <button class="month-nav-btn" onclick="changeMonthDelta(1)">▶</button>
+      <button class="month-current-btn" onclick="goToCurrentMonth()">今月</button>
+    </div>
   </div>
 
+  <!-- 当月サマリー -->
+  <div class="stats-bar">
+    <div class="stat-card"><div class="stat-val" id="s-total">0</div><div class="stat-lbl">当月<br>配信回数</div></div>
+    <div class="stat-card"><div class="stat-val blue" id="s-hours">0h</div><div class="stat-lbl">当月<br>配信時間</div></div>
+    <div class="stat-card"><div class="stat-val gold" id="s-coins">0</div><div class="stat-lbl">当月<br>コイン</div></div>
+    <div class="stat-card"><div class="stat-val green" id="s-usd">$0</div><div class="stat-lbl">当月<br>売上USD</div></div>
+    <div class="stat-card"><div class="stat-val purple" id="s-fav-inc">+0</div><div class="stat-lbl">当月お気に入り<br>増加数</div></div>
+  </div>
+
+  <!-- メインタブ -->
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('form',this)">✏️ 新規登録</button>
-    <button class="tab-btn" onclick="switchTab('records',this)">📋 配信履歴</button>
+    <button class="tab-btn" onclick="switchTab('records',this)">📋 当月履歴</button>
+    <button class="tab-btn" onclick="switchTab('total',this)">📊 累計</button>
   </div>
 
-  <!-- FORM PANEL -->
+  <!-- FORM -->
   <div class="panel active" id="panel-form">
     <div class="form-card">
-
       <div class="edit-banner" id="editBanner">
         ✏️ 編集モード：記録を修正中
         <button onclick="cancelEdit()">キャンセル ✕</button>
@@ -210,7 +276,7 @@
           <div class="field"><label>開始時間</label><input type="time" id="f-start" oninput="calcDuration()"></div>
           <div class="field"><label>終了時間</label><input type="time" id="f-end" oninput="calcDuration()"></div>
         </div>
-        <div class="form-grid cols2" style="margin-top:11px">
+        <div class="form-grid cols2" style="margin-top:8px">
           <div class="field"><label>配信時間（自動計算）</label><div class="computed-field" id="f-duration">—</div></div>
         </div>
       </div>
@@ -220,16 +286,19 @@
         <div class="form-grid">
           <div class="field"><label>配信タイトル ＊</label><input type="text" id="f-title" placeholder="例：夜枠ゆるトーク♪"></div>
         </div>
-        <div class="form-grid cols2" style="margin-top:11px">
-          <div class="field"><label>企画内容</label><textarea id="f-plan" placeholder="今日の企画・テーマ・内容"></textarea></div>
-          <div class="field"><label>ゴール</label><textarea id="f-goal" placeholder="今日の目標・達成したいこと"></textarea></div>
+        <div class="form-grid cols2" style="margin-top:8px">
+          <div class="field"><label>企画内容</label><textarea id="f-plan" placeholder="今日の企画・テーマ"></textarea></div>
+          <div class="field">
+            <label>ゴール（Enterで改行・自由に伸ばせます）</label>
+            <textarea id="f-goal" placeholder="今日の目標を書こう！&#10;&#10;例：&#10;・コイン500枚獲得&#10;・新規ファン3人獲得&#10;・1時間以上配信する"></textarea>
+          </div>
         </div>
       </div>
 
       <div class="form-section">
         <div class="section-title">📊 配信実績</div>
         <div class="form-grid cols2">
-          <div class="field"><label>お気に入り登録者数</label><input type="number" id="f-fav" min="0" placeholder="0"></div>
+          <div class="field"><label>お気に入り登録者数（配信終了時点）</label><input type="number" id="f-fav" min="0" placeholder="0"></div>
           <div class="field"><label>有料配信参加人数</label><input type="number" id="f-paid" min="0" placeholder="0"></div>
         </div>
       </div>
@@ -238,9 +307,9 @@
         <div class="section-title">💰 収益データ</div>
         <div class="form-grid cols2">
           <div class="field"><label>獲得コイン数</label><input type="number" id="f-coins" min="0" placeholder="0" oninput="calcUSD()"></div>
-          <div class="field"><label>ドル売上（自動計算：1コイン＝$0.05）</label><div class="computed-field" id="f-usd">$0.00</div></div>
+          <div class="field"><label>ドル売上（1コイン＝$0.05 自動計算）</label><div class="computed-field" id="f-usd">$0.00</div></div>
         </div>
-        <div class="form-grid cols2" style="margin-top:11px">
+        <div class="form-grid cols2" style="margin-top:8px">
           <div class="field"><label>日本円（手入力）</label><input type="number" id="f-jpy" min="0" placeholder="0"></div>
         </div>
       </div>
@@ -249,26 +318,61 @@
         <button class="btn btn-secondary" onclick="cancelEdit()">クリア</button>
         <button class="btn btn-primary" id="saveBtn" onclick="saveRecord()">✦ 配信データを保存</button>
       </div>
-
     </div>
   </div>
 
-  <!-- RECORDS PANEL -->
+  <!-- RECORDS（当月） -->
   <div class="panel" id="panel-records">
     <div class="records-header">
-      <span class="records-count" id="recordsCount">0 件の記録</span>
-      <input type="text" class="search-box" placeholder="🔍 タイトルで検索..." oninput="filterRecords(this.value)">
+      <span class="records-count" id="recordsCount">0 件</span>
+      <input type="text" class="search-box" placeholder="🔍 タイトル検索..." oninput="filterRecords(this.value)">
     </div>
-    <div class="records-list" id="recordsList"></div>
+
+    <!-- PC：テーブル表示 -->
+    <div class="desktop-table">
+      <table class="records-table">
+        <thead>
+          <tr>
+            <th>日付</th>
+            <th>時間帯</th>
+            <th>タイトル</th>
+            <th>配信時間</th>
+            <th>🪙 コイン</th>
+            <th>$ USD</th>
+            <th>♡ お気に入り</th>
+            <th>👥 有料</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="recordsTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- スマホ：カード表示 -->
+    <div class="mobile-records" id="mobileRecords"></div>
+  </div>
+
+  <!-- TOTAL -->
+  <div class="panel" id="panel-total">
+    <div class="total-section-title">📊 全期間累計</div>
+    <div class="total-stats">
+      <div class="stat-card"><div class="stat-val" id="t-total">0</div><div class="stat-lbl">総配信回数</div></div>
+      <div class="stat-card"><div class="stat-val blue" id="t-hours">0h</div><div class="stat-lbl">総配信時間</div></div>
+      <div class="stat-card"><div class="stat-val gold" id="t-coins">0</div><div class="stat-lbl">総コイン</div></div>
+      <div class="stat-card"><div class="stat-val green" id="t-usd">$0</div><div class="stat-lbl">総売上USD</div></div>
+      <div class="stat-card"><div class="stat-val" id="t-jpy">¥0</div><div class="stat-lbl">総日本円</div></div>
+    </div>
+    <div class="total-section-title">📅 月別サマリー</div>
+    <div class="monthly-list" id="monthlyList"></div>
   </div>
 </div>
 
-<!-- DETAIL MODAL -->
+<!-- MODAL -->
 <div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal(event)">
   <div class="modal">
     <div class="modal-title" id="modalTitle"></div>
     <div class="detail-grid" id="modalBody"></div>
-    <div class="btn-row" style="margin-top:16px">
+    <div class="btn-row" style="margin-top:13px">
       <button class="btn btn-secondary" onclick="closeModalDirect()">閉じる</button>
       <button class="btn btn-primary" id="modalEditBtn" onclick="editFromModal()">✏️ 編集する</button>
     </div>
@@ -278,198 +382,285 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbyrb8DaGn5kKGe3IZhmS-2hiciQ9eXt2onsy1bsTzzkh7dmDaibwTou-sI2gXPGJJdA/exec';
-  const CAST_NAME = 'むぎ';
+  const GAS_URL='https://script.google.com/macros/s/AKfycbyrb8DaGn5kKGe3IZhmS-2hiciQ9eXt2onsy1bsTzzkh7dmDaibwTou-sI2gXPGJJdA/exec';
+  const START_YEAR=2026,START_MONTH=1;
+  let allRecords=[],editingRecord=null;
+  const nd=new Date();
+  let activeMonth=`${nd.getFullYear()}-${String(nd.getMonth()+1).padStart(2,'0')}`;
 
-  let allRecords = [];
-  let editingRecord = null; // 編集中のレコード
-
-  // ===== INIT =====
-  document.getElementById('f-date').valueAsDate = new Date();
+  // INIT
+  buildMonthTabs();
+  document.getElementById('f-date').valueAsDate=new Date();
   loadRecords();
 
-  // ===== API =====
-  async function api(body) {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify(body)
-    });
+  // 月ドロップダウン生成
+  function buildMonthTabs(){
+    const n=new Date(),ey=n.getFullYear(),em=n.getMonth()+1;
+    const sel=document.getElementById('monthSelect');
+    sel.innerHTML='';
+    let y=START_YEAR,m=START_MONTH;
+    while(y<ey||(y===ey&&m<=em)){
+      const key=`${y}-${String(m).padStart(2,'0')}`;
+      const opt=document.createElement('option');
+      opt.value=key;
+      opt.textContent=`${y}年${String(m).padStart(2,'0')}月`;
+      opt.selected=(key===activeMonth);
+      sel.appendChild(opt);
+      m++;if(m>12){m=1;y++;}
+    }
+    // 最新月が下なので逆順に
+    const opts=Array.from(sel.options).reverse();
+    sel.innerHTML='';
+    opts.forEach(o=>sel.appendChild(o));
+  }
+
+  function selectMonth(key){
+    activeMonth=key;
+    updateStats();renderRecords();
+  }
+
+  function changeMonthDelta(delta){
+    const sel=document.getElementById('monthSelect');
+    const opts=Array.from(sel.options);
+    const cur=opts.findIndex(o=>o.value===activeMonth);
+    const next=cur-delta; // 逆順なのでdeltaを反転
+    if(next>=0&&next<opts.length){
+      activeMonth=opts[next].value;
+      sel.value=activeMonth;
+      updateStats();renderRecords();
+    }
+  }
+
+  function goToCurrentMonth(){
+    const n=new Date();
+    const key=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
+    activeMonth=key;
+    document.getElementById('monthSelect').value=key;
+    updateStats();renderRecords();
+  }
+
+  function monthRecords(){
+    return allRecords.filter(r=>String(r.date).startsWith(activeMonth));
+  }
+
+  // API
+  async function api(body){
+    const res=await fetch(GAS_URL,{method:'POST',body:JSON.stringify(body)});
     return res.json();
   }
 
-  async function loadRecords() {
+  async function loadRecords(){
     showLoading('データを読み込み中...');
-    try {
-      const res = await api({ action: 'getRecords' });
-      if (res.status === 'success') {
-        allRecords = res.records || [];
-        updateStats();
-        renderRecords();
+    try{
+      const res=await api({action:'getRecords'});
+      if(res.status==='success'){
+        allRecords=res.records||[];
+        updateStats();renderRecords();renderTotal();
       }
-    } catch(e) {
-      showToast('読み込みエラー：ネット接続を確認してください', true);
-    }
+    }catch(e){showToast('読み込みエラー：ネット接続を確認してください',true);}
     hideLoading();
   }
 
-  // ===== SAVE / UPDATE =====
-  async function saveRecord() {
-    const date = document.getElementById('f-date').value;
-    const title = document.getElementById('f-title').value.trim();
-    if (!date || !title) { showToast('📝 配信日とタイトルは必須です', true); return; }
-
-    const coins = parseFloat(document.getElementById('f-coins').value) || 0;
-    const durMins = getDurationMins();
-    const h = Math.floor(durMins/60), m = durMins%60;
-    const durationStr = durMins > 0 ? (h > 0 ? `${h}時間${m}分` : `${m}分`) : '';
-
-    const record = {
-      id: editingRecord ? editingRecord.id : Date.now(),
-      date,
-      start: document.getElementById('f-start').value,
-      end: document.getElementById('f-end').value,
-      durationMins: durMins,
-      durationStr,
-      title,
-      plan: document.getElementById('f-plan').value,
-      goal: document.getElementById('f-goal').value,
-      fav: parseInt(document.getElementById('f-fav').value) || 0,
-      paid: parseInt(document.getElementById('f-paid').value) || 0,
-      coins,
-      usd: coins * 0.05,
-      jpy: parseInt(document.getElementById('f-jpy').value) || 0,
+  // SAVE / UPDATE
+  async function saveRecord(){
+    const date=document.getElementById('f-date').value;
+    const title=document.getElementById('f-title').value.trim();
+    if(!date||!title){showToast('📝 配信日とタイトルは必須です',true);return;}
+    const coins=parseFloat(document.getElementById('f-coins').value)||0;
+    const durMins=getDurationMins();
+    const h=Math.floor(durMins/60),m=durMins%60;
+    const durationStr=durMins>0?(h>0?`${h}時間${m}分`:`${m}分`):'';
+    const record={
+      id:editingRecord?editingRecord.id:Date.now(),
+      date,start:document.getElementById('f-start').value,
+      end:document.getElementById('f-end').value,
+      durationMins:durMins,durationStr,title,
+      plan:document.getElementById('f-plan').value,
+      goal:document.getElementById('f-goal').value,
+      fav:parseInt(document.getElementById('f-fav').value)||0,
+      paid:parseInt(document.getElementById('f-paid').value)||0,
+      coins,usd:coins*0.05,
+      jpy:parseInt(document.getElementById('f-jpy').value)||0,
     };
-
-    document.getElementById('saveBtn').disabled = true;
-    showLoading(editingRecord ? '更新中...' : '保存中...');
-
-    try {
-      let res;
-      if (editingRecord) {
-        res = await api({ action: 'updateRecord', rowIndex: editingRecord.rowIndex, ...record });
-      } else {
-        res = await api({ action: 'save', ...record });
-      }
-
-      if (res.status === 'success') {
-        cancelEdit();
+    document.getElementById('saveBtn').disabled=true;
+    const isEdit=!!editingRecord;
+    showLoading(isEdit?'更新中...':'保存中...');
+    try{
+      const res=isEdit
+        ?await api({action:'updateRecord',rowIndex:editingRecord.rowIndex,record})
+        :await api({action:'save',record});
+      if(res.status==='success'){
+        editingRecord=null;cancelEdit();
         await loadRecords();
-        showToast(editingRecord ? '✦ 更新しました！' : '✦ 保存しました！');
-        editingRecord = null;
-      } else {
-        showToast('保存に失敗しました', true);
-      }
-    } catch(e) {
-      showToast('エラー：ネット接続を確認してください', true);
-    }
-
-    document.getElementById('saveBtn').disabled = false;
+        showToast(isEdit?'✦ 更新しました！':'✦ 保存しました！');
+      }else{showToast('保存に失敗しました',true);}
+    }catch(e){showToast('エラー：ネット接続を確認してください',true);}
+    document.getElementById('saveBtn').disabled=false;
     hideLoading();
   }
 
-  // ===== EDIT =====
-  function startEdit(rowIndex) {
+  // EDIT
+  function startEdit(rowIndex){
     closeModalDirect();
-    const r = allRecords.find(x => x.rowIndex === rowIndex);
-    if (!r) return;
-    editingRecord = r;
-
-    // フォームに値をセット
-    document.getElementById('f-date').value = r.date ? String(r.date).slice(0,10) : '';
-    document.getElementById('f-start').value = r.start || '';
-    document.getElementById('f-end').value = r.end || '';
-    document.getElementById('f-title').value = r.title || '';
-    document.getElementById('f-plan').value = r.plan || '';
-    document.getElementById('f-goal').value = r.goal || '';
-    document.getElementById('f-fav').value = r.fav || '';
-    document.getElementById('f-paid').value = r.paid || '';
-    document.getElementById('f-coins').value = r.coins || '';
-    document.getElementById('f-jpy').value = r.jpy || '';
-
-    calcDuration();
-    calcUSD();
-
+    const r=allRecords.find(x=>x.rowIndex===rowIndex);
+    if(!r)return;
+    editingRecord=r;
+    document.getElementById('f-date').value=r.date?String(r.date).slice(0,10):'';
+    document.getElementById('f-start').value=r.start||'';
+    document.getElementById('f-end').value=r.end||'';
+    document.getElementById('f-title').value=r.title||'';
+    document.getElementById('f-plan').value=r.plan||'';
+    document.getElementById('f-goal').value=r.goal||'';
+    document.getElementById('f-fav').value=r.fav||'';
+    document.getElementById('f-paid').value=r.paid||'';
+    document.getElementById('f-coins').value=r.coins||'';
+    document.getElementById('f-jpy').value=r.jpy||'';
+    calcDuration();calcUSD();
     document.getElementById('editBanner').classList.add('show');
-    document.getElementById('saveBtn').textContent = '✦ この内容で更新する';
-
-    // フォームタブに切り替え
-    switchTab('form', document.querySelectorAll('.tab-btn')[0]);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('saveBtn').textContent='✦ この内容で更新する';
+    switchTab('form',document.querySelectorAll('.tab-btn')[0]);
+    window.scrollTo({top:0,behavior:'smooth'});
   }
-
-  function editFromModal() {
-    const rowIndex = parseInt(document.getElementById('modalEditBtn').dataset.rowIndex);
-    startEdit(rowIndex);
-  }
-
-  function cancelEdit() {
-    editingRecord = null;
+  function editFromModal(){startEdit(parseInt(document.getElementById('modalEditBtn').dataset.rowIndex));}
+  function cancelEdit(){
+    editingRecord=null;
     document.getElementById('editBanner').classList.remove('show');
-    document.getElementById('saveBtn').textContent = '✦ 配信データを保存';
+    document.getElementById('saveBtn').textContent='✦ 配信データを保存';
     clearForm();
   }
 
-  // ===== DELETE =====
-  async function deleteRecord(rowIndex, e) {
+  // DELETE
+  async function deleteRecord(rowIndex,e){
     e.stopPropagation();
-    if (!confirm('この記録を削除しますか？')) return;
+    if(!confirm('この記録を削除しますか？'))return;
     showLoading('削除中...');
-    try {
-      const res = await api({ action: 'deleteRecord', rowIndex });
-      if (res.status === 'success') {
-        await loadRecords();
-        showToast('🗑️ 削除しました');
-      }
-    } catch(e) {
-      showToast('削除エラー', true);
-    }
+    try{
+      const res=await api({action:'deleteRecord',rowIndex});
+      if(res.status==='success'){await loadRecords();showToast('🗑️ 削除しました');}
+    }catch(e){showToast('削除エラー',true);}
     hideLoading();
   }
 
-  // ===== RENDER =====
-  function renderRecords(search = '') {
-    const q = search.toLowerCase();
-    const filtered = q ? allRecords.filter(r => String(r.title).toLowerCase().includes(q)) : allRecords;
-    document.getElementById('recordsCount').textContent = `${filtered.length} 件の記録`;
-    const list = document.getElementById('recordsList');
-    if (!filtered.length) {
-      list.innerHTML = `<div class="empty-state"><div class="emoji">🎙️</div><p>${q ? '検索結果がありません' : 'まだ配信記録がありません'}</p></div>`;
-      return;
-    }
-    list.innerHTML = filtered.map(r => `
-      <div class="record-card">
-        <div class="record-top">
-          <div onclick="showDetail(${r.rowIndex})" style="flex:1;cursor:pointer">
-            <div class="record-date">${formatDate(r.date)} ${r.start ? r.start + (r.end ? ' → '+r.end : '') : ''}</div>
-            <div class="record-title">${r.title}</div>
-          </div>
-          <div class="record-actions">
-            <button class="record-btn edit" onclick="startEdit(${r.rowIndex})" title="編集">✏️</button>
-            <button class="record-btn del" onclick="deleteRecord(${r.rowIndex},event)" title="削除">✕</button>
-          </div>
-        </div>
-        <div class="record-pills">
-          ${r.durationStr ? `<span class="pill pill-blue">⏱ ${r.durationStr}</span>` : ''}
-          ${r.fav ? `<span class="pill pill-pink">♡ ${Number(r.fav).toLocaleString()}</span>` : ''}
-          ${r.paid ? `<span class="pill pill-purple">👥 ${Number(r.paid).toLocaleString()}人</span>` : ''}
-          ${r.coins ? `<span class="pill pill-gold">🪙 ${Number(r.coins).toLocaleString()}</span>` : ''}
-          ${r.usd ? `<span class="pill pill-green">$ ${Number(r.usd).toFixed(2)}</span>` : ''}
-          ${r.jpy ? `<span class="pill pill-gold">¥ ${Number(r.jpy).toLocaleString()}</span>` : ''}
-        </div>
-      </div>
-    `).join('');
+  // STATS
+  function updateStats(){
+    const list=monthRecords();
+    document.getElementById('s-total').textContent=list.length;
+    const tMins=list.reduce((a,r)=>a+(Number(r.durationMins)||0),0);
+    document.getElementById('s-hours').textContent=fmtH(tMins);
+    const tCoins=list.reduce((a,r)=>a+(Number(r.coins)||0),0);
+    document.getElementById('s-coins').textContent=tCoins.toLocaleString();
+    document.getElementById('s-usd').textContent='$'+(tCoins*0.05).toFixed(0);
+    const favs=list.map(r=>Number(r.fav)||0).filter(v=>v>0);
+    let inc=0;
+    if(favs.length>=2)inc=Math.max(...favs)-Math.min(...favs);
+    else if(favs.length===1)inc=favs[0];
+    document.getElementById('s-fav-inc').textContent=(inc>=0?'+':'')+inc;
   }
 
-  function filterRecords(val) { renderRecords(val); }
+  // RENDER 当月
+  function renderRecords(search=''){
+    const q=search.toLowerCase();
+    let list=monthRecords();
+    if(q)list=list.filter(r=>String(r.title).toLowerCase().includes(q));
+    list.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    document.getElementById('recordsCount').textContent=`${list.length} 件`;
 
-  // ===== DETAIL MODAL =====
-  function showDetail(rowIndex) {
-    const r = allRecords.find(x => x.rowIndex === rowIndex);
-    if (!r) return;
-    document.getElementById('modalTitle').textContent = r.title;
-    document.getElementById('modalEditBtn').dataset.rowIndex = rowIndex;
-    document.getElementById('modalBody').innerHTML = `
-      <div class="detail-item"><div class="d-lbl">配信日</div><div class="d-val mono">${formatDate(r.date)}</div></div>
+    if(!list.length){
+      const empty=`<div class="empty-state"><div class="emoji">🎙️</div><p>${q?'検索結果がありません':'この月の記録はありません'}</p></div>`;
+      document.getElementById('recordsTableBody').innerHTML=`<tr><td colspan="9" style="text-align:center;padding:36px;color:var(--text2);border:none;background:transparent;">${q?'検索結果がありません':'この月の記録はありません'}</td></tr>`;
+      document.getElementById('mobileRecords').innerHTML=empty;
+      return;
+    }
+
+    // PC テーブル
+    document.getElementById('recordsTableBody').innerHTML=list.map(r=>`
+      <tr onclick="showDetail(${r.rowIndex})">
+        <td>
+          <div class="td-date">${fmtDateShort(r.date)}</div>
+        </td>
+        <td><div class="td-time">${r.start||'—'}${r.end?' →<br>'+r.end:''}</div></td>
+        <td><div class="td-title">${r.title}</div></td>
+        <td><div class="td-dur">${r.durationStr||'—'}</div></td>
+        <td><div class="td-coins">${r.coins?Number(r.coins).toLocaleString():'—'}</div></td>
+        <td><div class="td-usd">${r.usd?'$'+Number(r.usd).toFixed(0):'—'}</div></td>
+        <td><div class="td-fav">${r.fav?Number(r.fav).toLocaleString():'—'}</div></td>
+        <td><div class="td-paid">${r.paid?Number(r.paid).toLocaleString()+'人':'—'}</div></td>
+        <td onclick="event.stopPropagation()">
+          <div class="td-actions">
+            <button class="record-btn edit" onclick="startEdit(${r.rowIndex})">✏️</button>
+            <button class="record-btn del" onclick="deleteRecord(${r.rowIndex},event)">✕</button>
+          </div>
+        </td>
+      </tr>`).join('');
+
+    // スマホ カード
+    document.getElementById('mobileRecords').innerHTML=list.map(r=>`
+      <div class="mobile-card" onclick="showDetail(${r.rowIndex})">
+        <div class="mc-top">
+          <div>
+            <div class="mc-date">${fmtDateShort(r.date)} <span style="color:var(--text2);font-size:.66rem">${r.start||''}${r.end?' → '+r.end:''}</span></div>
+            <div class="mc-title">${r.title}</div>
+          </div>
+          <div class="mc-actions" onclick="event.stopPropagation()">
+            <button class="record-btn edit" onclick="startEdit(${r.rowIndex})">✏️</button>
+            <button class="record-btn del" onclick="deleteRecord(${r.rowIndex},event)">✕</button>
+          </div>
+        </div>
+        <div class="mc-nums">
+          <div class="mc-num"><div class="nv td-coins">${r.coins?Number(r.coins).toLocaleString():'—'}</div><div class="nl">🪙 コイン</div></div>
+          <div class="mc-num"><div class="nv td-usd">${r.usd?'$'+Number(r.usd).toFixed(0):'—'}</div><div class="nl">$ 売上</div></div>
+          <div class="mc-num"><div class="nv td-fav">${r.fav?Number(r.fav).toLocaleString():'—'}</div><div class="nl">♡ お気に入り</div></div>
+          <div class="mc-num"><div class="nv td-dur">${r.durationStr||'—'}</div><div class="nl">⏱ 配信時間</div></div>
+          <div class="mc-num"><div class="nv td-paid">${r.paid?Number(r.paid).toLocaleString():'—'}</div><div class="nl">👥 有料</div></div>
+          ${r.jpy?`<div class="mc-num"><div class="nv td-gold" style="color:var(--gold);font-family:'JetBrains Mono',monospace;font-size:.82rem;font-weight:700;">¥${Number(r.jpy).toLocaleString()}</div><div class="nl">¥ 円</div></div>`:''}
+        </div>
+      </div>`).join('');
+  }
+
+  function filterRecords(v){renderRecords(v);}
+
+  // RENDER 累計
+  function renderTotal(){
+    const all=allRecords;
+    document.getElementById('t-total').textContent=all.length;
+    document.getElementById('t-hours').textContent=fmtH(all.reduce((a,r)=>a+(Number(r.durationMins)||0),0));
+    const tc=all.reduce((a,r)=>a+(Number(r.coins)||0),0);
+    document.getElementById('t-coins').textContent=tc.toLocaleString();
+    document.getElementById('t-usd').textContent='$'+(tc*0.05).toFixed(0);
+    document.getElementById('t-jpy').textContent='¥'+all.reduce((a,r)=>a+(Number(r.jpy)||0),0).toLocaleString();
+    const map={};
+    all.forEach(r=>{
+      const k=String(r.date).slice(0,7);
+      if(!map[k])map[k]={count:0,mins:0,coins:0,jpy:0};
+      map[k].count++;map[k].mins+=Number(r.durationMins)||0;
+      map[k].coins+=Number(r.coins)||0;map[k].jpy+=Number(r.jpy)||0;
+    });
+    const keys=Object.keys(map).sort().reverse();
+    const el=document.getElementById('monthlyList');
+    if(!keys.length){el.innerHTML=`<div class="empty-state"><div class="emoji">📊</div><p>まだデータがありません</p></div>`;return;}
+    el.innerHTML=keys.map(k=>{
+      const[y,m]=k.split('-'),d=map[k];
+      return `<div class="monthly-row">
+        <div class="monthly-month">${y}年${m}月</div>
+        <div class="monthly-pills">
+          <span class="pill pill-pink">${d.count}回</span>
+          <span class="pill pill-blue">⏱ ${fmtH(d.mins)}</span>
+          <span class="pill pill-gold">🪙 ${d.coins.toLocaleString()}</span>
+          <span class="pill pill-green">$ ${(d.coins*0.05).toFixed(0)}</span>
+          ${d.jpy?`<span class="pill pill-gold">¥ ${d.jpy.toLocaleString()}</span>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // DETAIL MODAL
+  function showDetail(rowIndex){
+    const r=allRecords.find(x=>x.rowIndex===rowIndex);
+    if(!r)return;
+    document.getElementById('modalTitle').textContent=r.title;
+    document.getElementById('modalEditBtn').dataset.rowIndex=rowIndex;
+    document.getElementById('modalBody').innerHTML=`
+      <div class="detail-item"><div class="d-lbl">配信日</div><div class="d-val mono">${fmtDate(r.date)}</div></div>
       <div class="detail-item"><div class="d-lbl">時間帯</div><div class="d-val mono">${r.start||'—'} → ${r.end||'—'}</div></div>
       <div class="detail-item"><div class="d-lbl">配信時間</div><div class="d-val mono">${r.durationStr||'—'}</div></div>
       <div class="detail-item"><div class="d-lbl">お気に入り登録者</div><div class="d-val mono">${Number(r.fav||0).toLocaleString()} 人</div></div>
@@ -478,88 +669,59 @@
       <div class="detail-item"><div class="d-lbl">ドル売上</div><div class="d-val mono">$ ${Number(r.usd||0).toFixed(2)}</div></div>
       <div class="detail-item"><div class="d-lbl">日本円</div><div class="d-val mono">¥ ${Number(r.jpy||0).toLocaleString()}</div></div>
       <div class="detail-item wide"><div class="d-lbl">企画内容</div><div class="d-val">${r.plan||'—'}</div></div>
-      <div class="detail-item wide"><div class="d-lbl">ゴール</div><div class="d-val">${r.goal||'—'}</div></div>
-    `;
+      <div class="detail-item wide"><div class="d-lbl">ゴール</div><div class="d-val goal-val">${(r.goal||'—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div></div>`;
     document.getElementById('modalOverlay').classList.remove('hidden');
   }
+  function closeModal(e){if(e.target===document.getElementById('modalOverlay'))closeModalDirect();}
+  function closeModalDirect(){document.getElementById('modalOverlay').classList.add('hidden');}
 
-  function closeModal(e) { if (e.target===document.getElementById('modalOverlay')) closeModalDirect(); }
-  function closeModalDirect() { document.getElementById('modalOverlay').classList.add('hidden'); }
-
-  // ===== STATS =====
-  function updateStats() {
-    document.getElementById('s-total').textContent = allRecords.length;
-    const totalMins = allRecords.reduce((a,r) => a+(Number(r.durationMins)||0), 0);
-    const th = Math.floor(totalMins/60), tm = totalMins%60;
-    document.getElementById('s-hours').textContent = th > 0 ? `${th}h${tm}m` : `${tm}m`;
-    const totalCoins = allRecords.reduce((a,r) => a+(Number(r.coins)||0), 0);
-    document.getElementById('s-coins').textContent = totalCoins.toLocaleString();
-    document.getElementById('s-usd').textContent = '$'+(totalCoins*0.05).toFixed(0);
-    const maxFav = allRecords.reduce((a,r) => Math.max(a,Number(r.fav)||0), 0);
-    document.getElementById('s-fav').textContent = maxFav.toLocaleString();
+  // HELPERS
+  function calcDuration(){
+    const s=document.getElementById('f-start').value,e=document.getElementById('f-end').value;
+    if(!s||!e){document.getElementById('f-duration').textContent='—';return;}
+    const[sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);
+    let mins=(eh*60+em)-(sh*60+sm);if(mins<0)mins+=1440;
+    const h=Math.floor(mins/60),m=mins%60;
+    document.getElementById('f-duration').textContent=h>0?`${h}時間 ${m}分`:`${m}分`;
   }
-
-  // ===== HELPERS =====
-  function calcDuration() {
-    const s = document.getElementById('f-start').value;
-    const e = document.getElementById('f-end').value;
-    if (!s||!e) { document.getElementById('f-duration').textContent='—'; return; }
-    const [sh,sm]=s.split(':').map(Number), [eh,em]=e.split(':').map(Number);
-    let mins=(eh*60+em)-(sh*60+sm);
-    if (mins<0) mins+=1440;
-    const h=Math.floor(mins/60), m=mins%60;
-    document.getElementById('f-duration').textContent = h>0 ? `${h}時間 ${m}分` : `${m}分`;
+  function calcUSD(){
+    document.getElementById('f-usd').textContent='$'+((parseFloat(document.getElementById('f-coins').value)||0)*0.05).toFixed(2);
   }
-
-  function calcUSD() {
-    const c = parseFloat(document.getElementById('f-coins').value)||0;
-    document.getElementById('f-usd').textContent = '$'+(c*0.05).toFixed(2);
+  function getDurationMins(){
+    const s=document.getElementById('f-start').value,e=document.getElementById('f-end').value;
+    if(!s||!e)return 0;
+    const[sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number);
+    let mins=(eh*60+em)-(sh*60+sm);if(mins<0)mins+=1440;return mins;
   }
-
-  function getDurationMins() {
-    const s=document.getElementById('f-start').value, e=document.getElementById('f-end').value;
-    if (!s||!e) return 0;
-    const [sh,sm]=s.split(':').map(Number), [eh,em]=e.split(':').map(Number);
-    let mins=(eh*60+em)-(sh*60+sm);
-    if (mins<0) mins+=1440;
-    return mins;
-  }
-
-  function clearForm() {
-    ['f-start','f-end','f-title','f-plan','f-goal'].forEach(id => document.getElementById(id).value='');
-    ['f-fav','f-paid','f-coins','f-jpy'].forEach(id => document.getElementById(id).value='');
-    document.getElementById('f-date').valueAsDate = new Date();
+  function clearForm(){
+    ['f-start','f-end','f-title','f-plan','f-goal'].forEach(id=>document.getElementById(id).value='');
+    ['f-fav','f-paid','f-coins','f-jpy'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f-date').valueAsDate=new Date();
     document.getElementById('f-duration').textContent='—';
     document.getElementById('f-usd').textContent='$0.00';
   }
-
-  function formatDate(str) {
-    if (!str) return '';
-    const s = String(str);
-    if (s.includes('-')) { const [y,m,d]=s.split('-'); return `${y}年${m}月${d}日`; }
+  function fmtDate(str){
+    if(!str)return '';const s=String(str);
+    if(s.includes('-')){const[y,m,d]=s.split('-');return`${y}年${m}月${d}日`;}
     return s;
   }
-
-  function switchTab(name, btn) {
+  function fmtDateShort(str){
+    if(!str)return '';const s=String(str);
+    if(s.includes('-')){const[,m,d]=s.split('-');return`${m}/${d}`;}
+    return s;
+  }
+  function fmtH(mins){const h=Math.floor(mins/60),m=mins%60;return h>0?`${h}h${m}m`:`${m}m`;}
+  function switchTab(name,btn){
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.getElementById('panel-'+name).classList.add('active');
-    btn.classList.add('active');
-    if (name==='records') renderRecords();
+    document.getElementById('panel-'+name).classList.add('active');btn.classList.add('active');
+    if(name==='records')renderRecords();if(name==='total')renderTotal();
   }
-
-  function showLoading(text) {
-    document.getElementById('loadingText').textContent=text;
-    document.getElementById('loadingOverlay').classList.remove('hidden');
-  }
-  function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
-
-  function showToast(msg, isError=false) {
-    const t=document.getElementById('toast');
-    t.textContent=msg;
-    t.classList.toggle('error',isError);
-    t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'),2800);
+  function showLoading(t){document.getElementById('loadingText').textContent=t;document.getElementById('loadingOverlay').classList.remove('hidden');}
+  function hideLoading(){document.getElementById('loadingOverlay').classList.add('hidden');}
+  function showToast(msg,isError=false){
+    const t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('error',isError);
+    t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);
   }
 </script>
 </body>
