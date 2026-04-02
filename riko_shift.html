@@ -106,8 +106,8 @@
   .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
   .day {
     background: var(--surface); border: 1.5px solid var(--border);
-    border-radius: 10px; padding: 5px 2px 6px;
-    min-height: 62px; display: flex; flex-direction: column;
+    border-radius: 10px; padding: 5px 3px 6px;
+    min-height: 72px; display: flex; flex-direction: column;
     align-items: center; gap: 3px; cursor: pointer;
     transition: border-color 0.15s, transform 0.1s, background 0.25s;
     user-select: none;
@@ -122,8 +122,19 @@
   .day.today .day-num { background: var(--accent); color: #fff; }
   .day.sunday .day-num { color: #ff4466; }
   .day.saturday .day-num { color: var(--muted2); }
-  .day-bars { display: flex; flex-direction: column; gap: 2px; width: 86%; }
-  .day-bar { border-radius: 3px; height: 4px; width: 100%; }
+  .day-shifts { display: flex; flex-direction: column; gap: 2px; width: 100%; }
+  .day-shift-label {
+    border-radius: 3px; width: 100%;
+    padding: 1px 3px;
+    font-size: 0.42rem;
+    font-family: 'DM Mono', monospace;
+    line-height: 1.35;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: #fff;
+    font-weight: 700;
+  }
 
   /* ===== BOTTOM BAR ===== */
   .bottom-bar {
@@ -496,7 +507,7 @@
 <script>
 // ===== CONFIG =====
 const CAST_NAME = 'rico';
-const GAS_URL = 'YOUR_GAS_WEB_APP_URL_HERE';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbxgT3XCx-kKBUZalMMRI3qGGoP6FC0rzP97vqAPnghzT5Z9DtSogYffI7nyEmuurTbbrw/exec';
 const MAX_TEMPLATES = 5;
 
 const COLOR_PALETTE = [
@@ -528,27 +539,27 @@ const MONTH_NAMES = ['1','2','3','4','5','6','7','8','9','10','11','12'];
 const HOURS = Array.from({length:30}, (_,i) => String(i).padStart(2,'0'));
 const MINS  = ['00','15','30','45'];
 
-// ===== APRIL 2025 INITIAL DATA =====
+// ===== APRIL 2026 INITIAL DATA =====
 // s1=22時〜 s2=①1部(19-22) s3=②2部(22:30-25:30)
 const APRIL_2025 = {
-  '2025-04-01': ['s1'],
-  '2025-04-02': ['s1'],
-  '2025-04-03': ['s2','s3'],
-  '2025-04-04': ['s2','s3'],
-  '2025-04-06': ['s1'],   // 6日or7日 → 両方入れておく
-  '2025-04-07': ['s1'],
-  '2025-04-10': ['s2','s3'],
-  '2025-04-11': ['s2','s3'],
-  '2025-04-14': ['s1'],
-  '2025-04-15': ['s1'],
-  '2025-04-17': ['s2','s3'],
-  '2025-04-18': ['s2','s3'],
-  '2025-04-20': ['s1'],
-  '2025-04-22': ['s1'],
-  '2025-04-24': ['s2','s3'],
-  '2025-04-25': ['s2','s3'],
-  '2025-04-28': ['s2','s3'],
-  '2025-04-29': ['s2','s3'],
+  '2026-04-01': ['s1'],
+  '2026-04-02': ['s1'],
+  '2026-04-03': ['s2','s3'],
+  '2026-04-04': ['s2','s3'],
+  '2026-04-06': ['s1'],
+  '2026-04-07': ['s1'],
+  '2026-04-10': ['s2','s3'],
+  '2026-04-11': ['s2','s3'],
+  '2026-04-14': ['s1'],
+  '2026-04-15': ['s1'],
+  '2026-04-17': ['s2','s3'],
+  '2026-04-18': ['s2','s3'],
+  '2026-04-20': ['s1'],
+  '2026-04-22': ['s1'],
+  '2026-04-24': ['s2','s3'],
+  '2026-04-25': ['s2','s3'],
+  '2026-04-28': ['s2','s3'],
+  '2026-04-29': ['s2','s3'],
 };
 
 // ===== PERSIST =====
@@ -625,11 +636,13 @@ function renderCalendar() {
         if (d===6) cls+=' saturday';
         if (isToday) cls+=' today';
         cell.className = cls;
-        const bars = sel.map(id=>{
+        const labels = sel.map(id=>{
           const t = shiftTypes.find(x=>x.id===id);
-          return t ? `<div class="day-bar" style="background:${t.color}"></div>` : '';
+          if (!t) return '';
+          const time = t.end ? `${t.start}-${t.end}` : `${t.start}〜`;
+          return `<div class="day-shift-label" style="background:${t.color}">${t.name} ${time}</div>`;
         }).join('');
-        cell.innerHTML = `<div class="day-num">${day}</div><div class="day-bars">${bars}</div>`;
+        cell.innerHTML = `<div class="day-num">${day}</div><div class="day-shifts">${labels}</div>`;
         cell.onclick = ()=>openDayModal(currentYear, currentMonth+1, day, d);
       }
       weekEl.appendChild(cell);
