@@ -508,7 +508,7 @@
 <script>
 // ===== CONFIG =====
 const CAST_NAME = 'rico';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbxgT3XCx-kKBUZalMMRI3qGGoP6FC0rzP97vqAPnghzT5Z9DtSogYffI7nyEmuurTbbrw/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzoLvEL0e5_BpwGl_EHCGAVKAUjmp8fSNuh_gb4cOOXhUFPeBkxDEoCEWrcCYtd2k5-oA/exec';
 const MAX_TEMPLATES = 5;
 
 const COLOR_PALETTE = [
@@ -565,27 +565,46 @@ const APRIL_2025 = {
 
 // ===== PERSIST =====
 function load() {
-  const sd = localStorage.getItem('shiftData_rico');
-  if (sd) {
-    shiftData = JSON.parse(sd);
-  } else {
-    // 初回のみ4月データを埋め込む
-    shiftData = JSON.parse(JSON.stringify(APRIL_2025));
-  }
   const st = localStorage.getItem('shiftTypes_rico');
   shiftTypes = st ? JSON.parse(st) : JSON.parse(JSON.stringify(DEFAULT_SHIFTS));
   const tp = localStorage.getItem('templates_rico');
   templates = tp ? JSON.parse(tp) : Array.from({length: MAX_TEMPLATES}, () => ({ name:'', shifts:[] }));
-  // 常にMAX_TEMPLATES分確保
   while (templates.length < MAX_TEMPLATES) templates.push({ name:'', shifts:[] });
   const theme = localStorage.getItem('theme_rico');
   isDark = theme !== 'light';
   applyTheme();
+  loadShiftFromGAS();
 }
 function save() {
-  localStorage.setItem('shiftData_rico', JSON.stringify(shiftData));
   localStorage.setItem('shiftTypes_rico', JSON.stringify(shiftTypes));
   localStorage.setItem('templates_rico', JSON.stringify(templates));
+}
+
+async function loadShiftFromGAS() {
+  showToast('📡 読み込み中...');
+  try {
+    const url = `${GAS_URL}?castName=${encodeURIComponent(CAST_NAME)}&year=${currentYear}&month=${currentMonth+1}`;
+    const res = await fetch(url);
+    const json = await res.json();
+    if (json.status === 'ok' && Object.keys(json.shifts).length > 0) {
+      shiftData = {};
+      Object.entries(json.shifts).forEach(([date, arr]) => {
+        shiftData[date] = arr.map(s => s.shiftId);
+        arr.forEach(s => {
+          if (!shiftTypes.find(t => t.id === s.shiftId)) {
+            shiftTypes.push({ id: s.shiftId, name: s.name, start: s.start, end: s.end||'', color: COLOR_PALETTE[shiftTypes.length % COLOR_PALETTE.length] });
+          }
+        });
+      });
+    } else {
+      shiftData = JSON.parse(JSON.stringify(APRIL_2025));
+    }
+  } catch(e) {
+    shiftData = JSON.parse(JSON.stringify(APRIL_2025));
+  }
+  renderLegend();
+  renderCalendar();
+  showToast('');
 }
 
 // ===== THEME =====
@@ -655,7 +674,7 @@ function changeMonth(dir) {
   currentMonth += dir;
   if (currentMonth>11) { currentMonth=0; currentYear++; }
   if (currentMonth<0)  { currentMonth=11; currentYear--; }
-  renderCalendar();
+  loadShiftFromGAS();
 }
 
 // ===== DAY MODAL =====
@@ -714,6 +733,8 @@ function saveDay() {
   save();
   renderCalendar();
   document.getElementById('dayOverlay').classList.remove('open');
+  // 変更を即座にGASに保存
+  pushShiftToGAS();
 }
 
 // ===== TEMPLATE MODAL =====
@@ -928,30 +949,33 @@ function closePreview(e) {
   document.getElementById('previewOverlay').classList.remove('open');
 }
 
-// ===== SUBMIT =====
+// ===== SUBMIT (月全体を手動で再送信) =====
 async function submitShift() {
+  await pushShiftToGAS();
+}
+
+// 自動保存（日付変更のたびに呼ばれる）
+async function pushShiftToGAS() {
   const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
   const shifts = [];
   for (let d=1; d<=daysInMonth; d++) {
     const key = dk(currentYear, currentMonth+1, d);
     const sel = shiftData[key];
     if (!sel||sel.length===0) continue;
-    shifts.push({ date:key, shifts: sel.map(id=>{
-      const t=shiftTypes.find(x=>x.id===id);
-      return t?{name:t.name,start:t.start,end:t.end}:null;
-    }).filter(Boolean)});
-  }
-  if (shifts.length===0) { showToast('シフトが入力されていません'); return; }
-  if (GAS_URL==='YOUR_GAS_WEB_APP_URL_HERE') {
-    showToast(`✅ ${shifts.length}件を確認（送信先未設定）`);
-    console.log(JSON.stringify({castName:CAST_NAME,year:currentYear,month:currentMonth+1,shifts},null,2));
-    return;
+    sel.forEach(id => {
+      const t = shiftTypes.find(x=>x.id===id);
+      if (t) shifts.push({ date:key, shiftId:t.id, name:t.name, start:t.start, end:t.end||'' });
+    });
   }
   try {
-    showToast('送信中...');
-    await fetch(GAS_URL,{method:'POST',body:JSON.stringify({castName:CAST_NAME,year:currentYear,month:currentMonth+1,shifts})});
-    showToast('✅ 送信完了しました！');
-  } catch(e) { showToast('❌ 送信に失敗しました'); }
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      body: JSON.stringify({ castName:CAST_NAME, year:currentYear, month:currentMonth+1, shifts })
+    });
+    const json = await res.json();
+    if (json.status === 'ok') showToast('✅ 保存しました');
+    else showToast('❌ 保存エラー');
+  } catch(e) { showToast('❌ 通信エラー'); }
 }
 
 // ===== TOAST =====
@@ -963,7 +987,7 @@ function showToast(msg) {
 }
 
 // ===== INIT =====
-load(); renderLegend(); renderCalendar();
+load();
 </script>
 </body>
 </html>
