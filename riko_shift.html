@@ -6,273 +6,222 @@
 <title>シフト入力 – rico</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=DM+Mono:wght@400;500&display=swap');
-
-  :root, [data-theme="dark"] {
-    --bg: #0d0d0f; --surface: #161618; --surface2: #1e1e21;
-    --border: #2a2a2e; --text: #f0f0f0; --muted: #666; --muted2: #999;
-    --accent: #ff4466; --accent2: #30a8ff; --off: #1e1e21;
-    --shadow: rgba(0,0,0,0.4); --overlay-bg: rgba(0,0,0,0.6);
-    --input-bg: #0d0d0f;
-  }
-  [data-theme="light"] {
-    --bg: #f7f5f2; --surface: #ffffff; --surface2: #f0ede9;
-    --border: #e0ddd8; --text: #1a1a1a; --muted: #aaa; --muted2: #888;
-    --accent: #ff4466; --accent2: #30a8ff; --off: #f0ede9;
-    --shadow: rgba(0,0,0,0.08); --overlay-bg: rgba(0,0,0,0.45);
-    --input-bg: #ffffff;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { background: var(--bg); color: var(--text); font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; padding-bottom: 80px; overscroll-behavior: none; transition: background 0.25s, color 0.25s; }
-
-  /* HEADER */
-  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 14px 10px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px var(--shadow); }
-  .header-left { display: flex; flex-direction: column; gap: 2px; }
-  .header-name { font-size: 0.6rem; font-family: 'DM Mono', monospace; color: var(--muted); letter-spacing: 0.1em; }
-  .header-month { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-  .header-right { display: flex; align-items: center; gap: 5px; }
-  .icon-btn { background: var(--off); border: none; border-radius: 8px; width: 32px; height: 32px; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text); }
-  .icon-btn:active { opacity: 0.7; }
-
-  /* LEGEND */
-  .legend { display: flex; gap: 8px; padding: 7px 14px; overflow-x: auto; background: var(--surface); border-bottom: 1px solid var(--border); scrollbar-width: none; }
-  .legend::-webkit-scrollbar { display: none; }
-  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.6rem; color: var(--muted); font-family: 'DM Mono', monospace; white-space: nowrap; }
-  .legend-dot { width: 12px; height: 4px; border-radius: 2px; flex-shrink: 0; }
-
-  /* CALENDAR */
-  .cal-wrap { padding: 10px 8px; }
-  .weekday-row { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 3px; }
-  .weekday-row span { text-align: center; font-size: 0.58rem; font-family: 'DM Mono', monospace; color: var(--muted); padding: 2px 0; }
-  .weekday-row span:first-child { color: #ff4466; }
-  .weekday-row span:last-child { color: var(--accent2); }
-  .weeks { display: flex; flex-direction: column; gap: 3px; }
-  .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; align-items: stretch; }
-  .day { background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 5px 3px 6px; min-height: 80px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; transition: border-color 0.15s, transform 0.1s, background 0.25s; user-select: none; }
-  .day:active { transform: scale(0.94); }
-  .day.empty { background: transparent; border-color: var(--border); opacity: 0.15; cursor: default; pointer-events: none; min-height: 80px; }
-  .day-num { font-size: 0.88rem; font-weight: 700; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
-  .day.today .day-num { background: var(--accent); color: #fff; }
-  .day.sunday .day-num { color: #ff4466; }
-  .day.saturday .day-num { color: var(--muted2); }
-  .day-shifts { display: flex; flex-direction: column; gap: 2px; width: 100%; }
-  .day-shift-label { border-radius: 4px; width: 100%; padding: 2px 4px; font-size: 0.55rem; font-family: 'Noto Sans JP', sans-serif; line-height: 1.4; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #fff; font-weight: 700; text-align: center; }
-
-  /* BOTTOM BAR */
-  .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 10px 12px; display: flex; gap: 7px; z-index: 100; box-shadow: 0 -4px 16px var(--shadow); }
-  .btn-preview { flex: 1; background: var(--off); border: 1.5px solid var(--border); border-radius: 11px; padding: 11px 6px; font-size: 0.78rem; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; cursor: pointer; color: var(--text); }
-  .btn-submit { flex: 2; background: var(--accent); border: none; border-radius: 11px; padding: 11px; font-size: 0.85rem; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; cursor: pointer; color: #fff; }
-
-  /* OVERLAY / SHEET */
-  .overlay { position: fixed; inset: 0; background: var(--overlay-bg); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
-  .overlay.open { display: flex; }
-  .sheet { background: var(--surface); border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; animation: slideUp 0.22s ease; }
-  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .sheet-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 13px auto 0; }
-  .sheet-title { font-size: 0.95rem; font-weight: 700; padding: 12px 18px 10px; border-bottom: 1px solid var(--border); }
-  .sheet-scroll { max-height: 75vh; overflow-y: auto; padding-bottom: 36px; }
-
-  /* DAY MODAL */
-  .shift-list { display: flex; flex-direction: column; }
-  .shift-row { display: flex; align-items: center; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.12s; }
-  .shift-row:last-child { border-bottom: none; }
-  .shift-row:active { background: var(--off); }
-  .shift-row.selected { background: var(--surface2); }
-  .shift-check { width: 46px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; padding: 13px 0; }
-  .shift-info { flex: 1; padding: 11px 0; }
-  .shift-name { font-size: 0.85rem; font-weight: 700; margin-bottom: 2px; }
-  .shift-time { font-size: 0.68rem; color: var(--muted); font-family: 'DM Mono', monospace; }
-  .shift-color-bar { width: 4px; height: 36px; border-radius: 2px; margin-right: 14px; flex-shrink: 0; }
-  .day-modal-actions { padding: 12px 14px 0; display: flex; gap: 7px; }
-  .tpl-apply-label { font-size: 0.6rem; color: var(--muted); padding: 8px 14px 0; font-family: 'DM Mono', monospace; }
-  .tpl-apply-bar { padding: 6px 14px 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
-  .tpl-apply-bar::-webkit-scrollbar { display: none; }
-  .tpl-apply-chip { background: var(--off); border: 1.5px solid var(--border); border-radius: 20px; padding: 5px 12px; font-size: 0.7rem; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; cursor: pointer; white-space: nowrap; color: var(--text); flex-shrink: 0; }
-
-  /* BTN */
-  .btn-sm { flex: 1; border-radius: 10px; padding: 11px 6px; font-size: 0.78rem; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; cursor: pointer; border: 1.5px solid var(--border); }
-  .btn-sm.cancel { background: var(--off); color: var(--text); }
-  .btn-sm.clear { background: transparent; border-color: var(--accent); color: var(--accent); }
-  .btn-sm.ok { background: var(--text); border-color: var(--text); color: var(--bg); flex: 2; }
-
-  /* TEMPLATE MODAL */
-  .tpl-list { display: flex; flex-direction: column; }
-  .tpl-item { display: flex; align-items: center; border-bottom: 1px solid var(--border); padding: 0 14px; gap: 10px; min-height: 60px; }
-  .tpl-item:last-child { border-bottom: none; }
-  .tpl-slot-num { font-size: 0.65rem; font-family: 'DM Mono', monospace; color: var(--muted); min-width: 20px; text-align: center; }
-  .tpl-info { flex: 1; }
-  .tpl-name-input { background: transparent; border: none; outline: none; font-size: 0.88rem; font-weight: 700; color: var(--text); font-family: 'Noto Sans JP', sans-serif; width: 100%; padding: 2px 0; }
-  .tpl-name-input::placeholder { color: var(--muted); font-weight: 400; }
-  .tpl-preview { font-size: 0.65rem; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 2px; }
-  .tpl-actions { display: flex; gap: 6px; flex-shrink: 0; }
-  .tpl-btn { background: var(--off); border: 1.5px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 0.72rem; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; cursor: pointer; color: var(--text); white-space: nowrap; }
-  .tpl-btn.save-now { border-color: var(--accent2); color: var(--accent2); background: transparent; }
-  .tpl-btn.clear-tpl { border-color: var(--muted); color: var(--muted); background: transparent; }
-
-  /* TIME PICKER */
-  #timePickerOverlay { position: fixed; inset: 0; background: var(--overlay-bg); z-index: 500; display: none; align-items: flex-end; justify-content: center; }
-  #timePickerOverlay.open { display: flex; }
-  .time-picker-sheet { background: var(--surface); border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; padding-bottom: 36px; animation: slideUp 0.22s ease; }
-  .time-picker-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 10px; border-bottom: 1px solid var(--border); }
-  .time-picker-title { font-size: 0.92rem; font-weight: 700; }
-  .time-picker-sub { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
-  .time-picker-ok { background: var(--text); color: var(--bg); border: none; border-radius: 10px; padding: 8px 18px; font-size: 0.82rem; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; cursor: pointer; }
-  .drums-wrap { display: flex; align-items: center; justify-content: center; gap: 0; padding: 0 20px; position: relative; height: 200px; }
-  .drums-wrap::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: calc(100% - 40px); height: 44px; background: var(--surface2); border-radius: 10px; pointer-events: none; z-index: 1; }
-  .drum-sep { font-size: 1.4rem; font-weight: 700; color: var(--text); padding: 0 4px; z-index: 2; }
-  .drum { flex: 1; height: 200px; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; position: relative; z-index: 2; -webkit-overflow-scrolling: touch; }
-  .drum::-webkit-scrollbar { display: none; }
-  .drum-item { height: 44px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; scroll-snap-align: center; color: var(--muted); transition: color 0.1s; font-family: 'DM Mono', monospace; flex-shrink: 0; }
-  .drum-item.active { color: var(--text); }
-  .drum-pad { height: 78px; flex-shrink: 0; }
-
-  /* SETTINGS */
-  .settings-section { padding: 14px 16px 0; }
-  .settings-section-title { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; font-family: 'DM Mono', monospace; margin-bottom: 10px; }
-  .shift-setting-card { background: var(--surface2); border-radius: 12px; padding: 13px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 9px; border: 1px solid var(--border); }
-  .setting-row { display: flex; align-items: center; gap: 10px; }
-  .setting-label { font-size: 0.72rem; color: var(--muted); min-width: 48px; }
-  .setting-input { flex: 1; border: 1.5px solid var(--border); border-radius: 8px; padding: 7px 10px; font-size: 0.85rem; font-family: 'Noto Sans JP', sans-serif; background: var(--input-bg); color: var(--text); outline: none; }
-  .setting-input:focus { border-color: var(--accent2); }
-  .color-pick-row { display: flex; gap: 7px; flex-wrap: wrap; }
-  .color-chip { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s, transform 0.1s; }
-  .color-chip.selected { border-color: var(--text); transform: scale(1.18); }
-  .add-shift-btn { width: 100%; background: transparent; border: 1.5px dashed var(--border); border-radius: 12px; padding: 11px; font-size: 0.82rem; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; cursor: pointer; color: var(--muted); margin-bottom: 10px; }
-  .remove-shift-btn { background: none; border: none; color: var(--muted); font-size: 1rem; cursor: pointer; padding: 0 4px; }
-  .settings-save-btn { margin: 14px 16px 0; width: calc(100% - 32px); background: var(--text); border: none; border-radius: 12px; padding: 13px; font-size: 0.88rem; font-family: 'Noto Sans JP', sans-serif; font-weight: 700; cursor: pointer; color: var(--bg); display: block; }
-
-  /* PREVIEW */
-  #previewOverlay { position: fixed; inset: 0; background: var(--overlay-bg); z-index: 300; display: none; align-items: flex-start; justify-content: center; padding: 20px 12px; overflow-y: auto; }
-  #previewOverlay.open { display: flex; }
-  .preview-box { background: var(--surface); border-radius: 16px; padding: 18px; width: 100%; max-width: 480px; animation: fadeIn 0.2s ease; }
-  @keyframes fadeIn { from { opacity:0; transform:scale(0.97); } to { opacity:1; transform:scale(1); } }
-  .preview-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 12px; }
-  .preview-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-  .preview-item { display: flex; align-items: flex-start; gap: 10px; background: var(--surface2); border-radius: 8px; padding: 8px 12px; }
-  .preview-date { font-weight: 700; font-size: 0.78rem; min-width: 58px; }
-  .preview-shifts { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-  .preview-shift-row { font-size: 0.68rem; font-family: 'DM Mono', monospace; }
-  .preview-empty { color: var(--muted); font-size: 0.78rem; text-align: center; padding: 18px; }
-
-  /* TOAST */
-  .toast { position: fixed; bottom: 86px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: var(--bg); border-radius: 24px; padding: 9px 20px; font-size: 0.78rem; opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; white-space: nowrap; z-index: 600; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  :root,[data-theme="dark"]{--bg:#0d0d0f;--surface:#161618;--surface2:#1e1e21;--border:#2a2a2e;--text:#f0f0f0;--muted:#666;--muted2:#999;--accent:#ff4466;--accent2:#30a8ff;--off:#1e1e21;--shadow:rgba(0,0,0,.4);--ovbg:rgba(0,0,0,.6);--ibg:#0d0d0f}
+  [data-theme="light"]{--bg:#f7f5f2;--surface:#fff;--surface2:#f0ede9;--border:#e0ddd8;--text:#1a1a1a;--muted:#aaa;--muted2:#888;--accent:#ff4466;--accent2:#30a8ff;--off:#f0ede9;--shadow:rgba(0,0,0,.08);--ovbg:rgba(0,0,0,.45);--ibg:#fff}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;padding-bottom:80px;overscroll-behavior:none;transition:background .25s,color .25s}
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 14px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px var(--shadow)}
+  .hl{display:flex;flex-direction:column;gap:2px}
+  .hn{font-size:.6rem;font-family:'DM Mono',monospace;color:var(--muted);letter-spacing:.1em}
+  .hm{font-size:1.25rem;font-weight:700;letter-spacing:-.02em;line-height:1}
+  .hr{display:flex;align-items:center;gap:5px}
+  .ib{background:var(--off);border:none;border-radius:8px;width:32px;height:32px;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text)}
+  .ib:active{opacity:.7}
+  .legend{display:flex;gap:8px;padding:7px 14px;overflow-x:auto;background:var(--surface);border-bottom:1px solid var(--border);scrollbar-width:none}
+  .legend::-webkit-scrollbar{display:none}
+  .li{display:flex;align-items:center;gap:5px;font-size:.6rem;color:var(--muted);font-family:'DM Mono',monospace;white-space:nowrap}
+  .ld{width:12px;height:4px;border-radius:2px;flex-shrink:0}
+  .cal{padding:10px 8px}
+  .wh{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:3px}
+  .wh span{text-align:center;font-size:.58rem;font-family:'DM Mono',monospace;color:var(--muted);padding:2px 0}
+  .wh span:first-child{color:#ff4466}
+  .wh span:last-child{color:var(--accent2)}
+  .weeks{display:flex;flex-direction:column;gap:3px}
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;align-items:stretch}
+  .day{background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:5px 3px 6px;min-height:80px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;transition:border-color .15s,transform .1s,background .25s;user-select:none}
+  .day:active{transform:scale(.94)}
+  .day.empty{background:transparent;border-color:var(--border);opacity:.15;cursor:default;pointer-events:none}
+  .dn{font-size:.88rem;font-weight:700;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:6px}
+  .day.today .dn{background:var(--accent);color:#fff}
+  .day.sun .dn{color:#ff4466}
+  .day.sat .dn{color:var(--muted2)}
+  .ds{display:flex;flex-direction:column;gap:2px;width:100%}
+  .dsl{border-radius:4px;width:100%;padding:2px 4px;font-size:.55rem;font-family:'Noto Sans JP',sans-serif;line-height:1.4;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#fff;font-weight:700;text-align:center}
+  .bb{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:10px 12px;display:flex;gap:7px;z-index:100;box-shadow:0 -4px 16px var(--shadow)}
+  .bp{flex:1;background:var(--off);border:1.5px solid var(--border);border-radius:11px;padding:11px 6px;font-size:.78rem;font-family:'Noto Sans JP',sans-serif;font-weight:700;cursor:pointer;color:var(--text)}
+  .bs{flex:2;background:var(--accent);border:none;border-radius:11px;padding:11px;font-size:.85rem;font-family:'Noto Sans JP',sans-serif;font-weight:700;cursor:pointer;color:#fff}
+  .ov{position:fixed;inset:0;background:var(--ovbg);z-index:200;display:none;align-items:flex-end;justify-content:center}
+  .ov.open{display:flex}
+  .sh{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:500px;animation:su .22s ease}
+  @keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  .shh{width:36px;height:4px;background:var(--border);border-radius:2px;margin:13px auto 0}
+  .sht{font-size:.95rem;font-weight:700;padding:12px 18px 10px;border-bottom:1px solid var(--border)}
+  .shs{max-height:75vh;overflow-y:auto;padding-bottom:36px}
+  .srl{display:flex;flex-direction:column}
+  .sr{display:flex;align-items:center;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+  .sr:last-child{border-bottom:none}
+  .sr:active,.sr.sel{background:var(--surface2)}
+  .sc{width:46px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;padding:13px 0}
+  .si{flex:1;padding:11px 0}
+  .sn{font-size:.85rem;font-weight:700;margin-bottom:2px}
+  .st{font-size:.68rem;color:var(--muted);font-family:'DM Mono',monospace}
+  .scb{width:4px;height:36px;border-radius:2px;margin-right:14px;flex-shrink:0}
+  .dma{padding:12px 14px 0;display:flex;gap:7px}
+  .tal{font-size:.6rem;color:var(--muted);padding:8px 14px 0;font-family:'DM Mono',monospace}
+  .tab{padding:6px 14px 0;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+  .tab::-webkit-scrollbar{display:none}
+  .tac{background:var(--off);border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;font-size:.7rem;font-family:'Noto Sans JP',sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;color:var(--text);flex-shrink:0}
+  .btn{flex:1;border-radius:10px;padding:11px 6px;font-size:.78rem;font-family:'Noto Sans JP',sans-serif;font-weight:700;cursor:pointer;border:1.5px solid var(--border)}
+  .btn.ca{background:var(--off);color:var(--text)}
+  .btn.cl{background:transparent;border-color:var(--accent);color:var(--accent)}
+  .btn.ok{background:var(--text);border-color:var(--text);color:var(--bg);flex:2}
+  .tli{display:flex;flex-direction:column}
+  .tit{display:flex;align-items:center;border-bottom:1px solid var(--border);padding:0 14px;gap:10px;min-height:60px}
+  .tit:last-child{border-bottom:none}
+  .tsn{font-size:.65rem;font-family:'DM Mono',monospace;color:var(--muted);min-width:20px;text-align:center}
+  .tin{flex:1}
+  .tni{background:transparent;border:none;outline:none;font-size:.88rem;font-weight:700;color:var(--text);font-family:'Noto Sans JP',sans-serif;width:100%;padding:2px 0}
+  .tni::placeholder{color:var(--muted);font-weight:400}
+  .tpv{font-size:.65rem;color:var(--muted);font-family:'DM Mono',monospace;margin-top:2px}
+  .tac2{display:flex;gap:6px;flex-shrink:0}
+  .tb{background:var(--off);border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.72rem;font-family:'Noto Sans JP',sans-serif;font-weight:700;cursor:pointer;color:var(--text);white-space:nowrap}
+  .tb.sv{border-color:var(--accent2);color:var(--accent2);background:transparent}
+  .tb.dl{border-color:var(--muted);color:var(--muted);background:transparent}
+  #tpo{position:fixed;inset:0;background:var(--ovbg);z-index:500;display:none;align-items:flex-end;justify-content:center}
+  #tpo.open{display:flex}
+  .tps{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:500px;padding-bottom:36px;animation:su .22s ease}
+  .tph{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;border-bottom:1px solid var(--border)}
+  .tpt{font-size:.92rem;font-weight:700}
+  .tpb{font-size:.68rem;color:var(--muted);margin-top:2px}
+  .tpok{background:var(--text);color:var(--bg);border:none;border-radius:10px;padding:8px 18px;font-size:.82rem;font-family:'Noto Sans JP',sans-serif;font-weight:700;cursor:pointer}
+  .dw{display:flex;align-items:center;justify-content:center;gap:0;padding:0 20px;position:relative;height:200px}
+  .dw::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:calc(100% - 40px);height:44px;background:var(--surface2);border-radius:10px;pointer-events:none;z-index:1}
+  .dsp{font-size:1.4rem;font-weight:700;color:var(--text);padding:0 4px;z-index:2}
+  .dr{flex:1;height:200px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;position:relative;z-index:2;-webkit-overflow-scrolling:touch}
+  .dr::-webkit-scrollbar{display:none}
+  .dri{height:44px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:700;scroll-snap-align:center;color:var(--muted);transition:color .1s;font-family:'DM Mono',monospace;flex-shrink:0}
+  .dri.active{color:var(--text)}
+  .drp{height:78px;flex-shrink:0}
+  .ss{padding:14px 16px 0}
+  .ssl{font-size:.6rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:10px}
+  .ssc{background:var(--surface2);border-radius:12px;padding:13px;margin-bottom:10px;display:flex;flex-direction:column;gap:9px;border:1px solid var(--border)}
+  .sr2{display:flex;align-items:center;gap:10px}
+  .sl{font-size:.72rem;color:var(--muted);min-width:48px}
+  .si2{flex:1;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:.85rem;font-family:'Noto Sans JP',sans-serif;background:var(--ibg);color:var(--text);outline:none}
+  .si2:focus{border-color:var(--accent2)}
+  .cpr{display:flex;gap:7px;flex-wrap:wrap}
+  .cc{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .15s,transform .1s}
+  .cc.sel{border-color:var(--text);transform:scale(1.18)}
+  .asb{width:100%;background:transparent;border:1.5px dashed var(--border);border-radius:12px;padding:11px;font-size:.82rem;font-family:'Noto Sans JP',sans-serif;font-weight:700;cursor:pointer;color:var(--muted);margin-bottom:10px}
+  .rsb{background:none;border:none;color:var(--muted);font-size:1rem;cursor:pointer;padding:0 4px}
+  .ssb{margin:14px 16px 0;width:calc(100% - 32px);background:var(--text);border:none;border-radius:12px;padding:13px;font-size:.88rem;font-family:'Noto Sans JP',sans-serif;font-weight:700;cursor:pointer;color:var(--bg);display:block}
+  #po{position:fixed;inset:0;background:var(--ovbg);z-index:300;display:none;align-items:flex-start;justify-content:center;padding:20px 12px;overflow-y:auto}
+  #po.open{display:flex}
+  .pb{background:var(--surface);border-radius:16px;padding:18px;width:100%;max-width:480px;animation:fi .2s ease}
+  @keyframes fi{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+  .pt{font-size:.95rem;font-weight:700;margin-bottom:12px}
+  .pl{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+  .pi{display:flex;align-items:flex-start;gap:10px;background:var(--surface2);border-radius:8px;padding:8px 12px}
+  .pd{font-weight:700;font-size:.78rem;min-width:58px}
+  .psh{display:flex;flex-direction:column;gap:2px;flex:1}
+  .psr{font-size:.68rem;font-family:'DM Mono',monospace}
+  .pe{color:var(--muted);font-size:.78rem;text-align:center;padding:18px}
+  .toast{position:fixed;bottom:86px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);border-radius:24px;padding:9px 20px;font-size:.78rem;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;white-space:nowrap;z-index:600}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
 <body>
-
 <div class="header">
-  <div class="header-left">
-    <div class="header-name">rico / シフト入力</div>
-    <div class="header-month" id="headerMonth"></div>
+  <div class="hl">
+    <div class="hn">rico / シフト入力</div>
+    <div class="hm" id="hm"></div>
   </div>
-  <div class="header-right">
-    <button class="icon-btn" onclick="changeMonth(-1)">‹</button>
-    <button class="icon-btn" onclick="changeMonth(1)">›</button>
-    <button class="icon-btn" onclick="openTemplateModal()" title="テンプレート">📋</button>
-    <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="テーマ切替">🌙</button>
-    <button class="icon-btn" onclick="openSettings()" title="設定">⚙️</button>
+  <div class="hr">
+    <button class="ib" onclick="changeMonth(-1)">‹</button>
+    <button class="ib" onclick="changeMonth(1)">›</button>
+    <button class="ib" onclick="openTpl()">📋</button>
+    <button class="ib" onclick="toggleTheme()" id="themeBtn">🌙</button>
+    <button class="ib" onclick="openSettings()">⚙️</button>
   </div>
 </div>
-
 <div class="legend" id="legend"></div>
-
-<div class="cal-wrap">
-  <div class="weekday-row">
-    <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
-  </div>
-  <div class="weeks" id="calendarWeeks"></div>
+<div class="cal">
+  <div class="wh"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+  <div class="weeks" id="weeks"></div>
 </div>
-
-<div class="bottom-bar">
-  <button class="btn-preview" onclick="openPreview()">📅 確認</button>
-  <button class="btn-submit" onclick="submitShift()">✅ 送信する</button>
+<div class="bb">
+  <button class="bp" onclick="openPreview()">📅 確認</button>
+  <button class="bs" onclick="submitShift()">✅ 送信する</button>
 </div>
 
 <!-- DAY MODAL -->
-<div class="overlay" id="dayOverlay" onclick="closeDayOverlay(event)">
-  <div class="sheet" style="padding-bottom:36px">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="dayModalTitle"></div>
-    <div class="tpl-apply-label" id="tplApplyLabel"></div>
-    <div class="tpl-apply-bar" id="tplApplyBar"></div>
-    <div class="shift-list" id="shiftList"></div>
-    <div class="day-modal-actions">
-      <button class="btn-sm cancel" onclick="closeDayOverlay()">キャンセル</button>
-      <button class="btn-sm clear" onclick="clearDayModal()">クリア</button>
-      <button class="btn-sm ok" onclick="saveDay()">OK</button>
+<div class="ov" id="dayOv" onclick="closeDayOv(event)">
+  <div class="sh" style="padding-bottom:36px">
+    <div class="shh"></div>
+    <div class="sht" id="dayTitle"></div>
+    <div class="tal" id="talLabel"></div>
+    <div class="tab" id="tabBar"></div>
+    <div class="srl" id="srl"></div>
+    <div class="dma">
+      <button class="btn ca" onclick="closeDayOv()">キャンセル</button>
+      <button class="btn cl" onclick="clearDay()">クリア</button>
+      <button class="btn ok" onclick="saveDay()">OK</button>
     </div>
   </div>
 </div>
 
 <!-- TEMPLATE MODAL -->
-<div class="overlay" id="tplOverlay" onclick="closeTplOverlay(event)">
-  <div class="sheet" style="padding-bottom:36px">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">📋 テンプレート管理</div>
-    <div class="sheet-scroll">
-      <div class="tpl-list" id="tplList"></div>
-    </div>
+<div class="ov" id="tplOv" onclick="closeTplOv(event)">
+  <div class="sh" style="padding-bottom:36px">
+    <div class="shh"></div>
+    <div class="sht">📋 テンプレート管理</div>
+    <div class="shs"><div class="tli" id="tli"></div></div>
   </div>
 </div>
 
 <!-- SETTINGS -->
-<div class="overlay" id="settingsOverlay" onclick="closeSettingsOverlay(event)">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">⚙️ シフト設定</div>
-    <div class="sheet-scroll">
-      <div class="settings-section">
-        <div class="settings-section-title">シフト種別の編集</div>
-        <div id="shiftSettingCards"></div>
-        <button class="add-shift-btn" onclick="addShiftType()">＋ シフト種別を追加</button>
+<div class="ov" id="setOv" onclick="closeSetOv(event)">
+  <div class="sh">
+    <div class="shh"></div>
+    <div class="sht">⚙️ シフト設定</div>
+    <div class="shs">
+      <div class="ss">
+        <div class="ssl">シフト種別の編集</div>
+        <div id="sCards"></div>
+        <button class="asb" onclick="addType()">＋ シフト種別を追加</button>
       </div>
-      <button class="settings-save-btn" onclick="saveSettings()">保存する</button>
+      <button class="ssb" onclick="saveSettings()">保存する</button>
     </div>
   </div>
 </div>
 
 <!-- TIME PICKER -->
-<div id="timePickerOverlay">
-  <div class="time-picker-sheet">
-    <div class="time-picker-header">
-      <div>
-        <div class="time-picker-title" id="timePickerTitle">開始時間</div>
-        <div class="time-picker-sub" id="timePickerSub"></div>
-      </div>
-      <button class="time-picker-ok" onclick="confirmTimePicker()">決定</button>
+<div id="tpo">
+  <div class="tps">
+    <div class="tph">
+      <div><div class="tpt" id="tpTitle"></div><div class="tpb" id="tpSub"></div></div>
+      <button class="tpok" onclick="confirmTP()">決定</button>
     </div>
-    <div class="drums-wrap">
-      <div class="drum" id="drumH" onscroll="onDrumScroll('H')"></div>
-      <div class="drum-sep">:</div>
-      <div class="drum" id="drumM" onscroll="onDrumScroll('M')"></div>
+    <div class="dw">
+      <div class="dr" id="drH" onscroll="onDS('H')"></div>
+      <div class="dsp">:</div>
+      <div class="dr" id="drM" onscroll="onDS('M')"></div>
     </div>
   </div>
 </div>
 
 <!-- PREVIEW -->
-<div id="previewOverlay" onclick="closePreview(event)">
-  <div class="preview-box">
-    <div class="preview-title" id="previewTitle"></div>
-    <div class="preview-list" id="previewList"></div>
-    <button class="btn-sm cancel" style="width:100%;border-radius:12px;padding:12px" onclick="closePreview()">閉じる</button>
+<div id="po" onclick="closePrev(event)">
+  <div class="pb">
+    <div class="pt" id="prevTitle"></div>
+    <div class="pl" id="prevList"></div>
+    <button class="btn ca" style="width:100%;border-radius:12px;padding:12px" onclick="closePrev()">閉じる</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== CONFIG =====
-const CAST_NAME = 'rico';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzZWNfrGIhz_FfphnAXYbZtyBCi1Ma8K0zlYOFsg57BtSozvQ6uP-z6m2lPG9Y8nqDt9g/exec';
-const MAX_TEMPLATES = 5;
-const COLOR_PALETTE = ['#30a8ff','#ff4466','#7c6ff7','#ff9500','#34c759','#ff6b6b','#00bcd4','#e91e8c','#8bc34a','#ff5722'];
-const DEFAULT_SHIFTS = [
-  { id:'s1', name:'22時〜',  start:'22:00', end:'',      color:'#7c6ff7' },
-  { id:'s2', name:'① 1部', start:'19:00', end:'22:00', color:'#30a8ff' },
-  { id:'s3', name:'② 2部', start:'22:30', end:'25:30', color:'#ff4466' },
+const CAST = 'rico';
+const GAS  = 'https://script.google.com/macros/s/AKfycbzZWNfrGIhz_FfphnAXYbZtyBCi1Ma8K0zlYOFsg57BtSozvQ6uP-z6m2lPG9Y8nqDt9g/exec';
+const MAX_TPL = 5;
+const COLORS = ['#30a8ff','#ff4466','#7c6ff7','#ff9500','#34c759','#ff6b6b','#00bcd4','#e91e8c','#8bc34a','#ff5722'];
+const DEF_TYPES = [
+  {id:'s1',name:'22時〜', start:'22:00',end:'',     color:'#7c6ff7'},
+  {id:'s2',name:'① 1部',start:'19:00',end:'22:00',color:'#30a8ff'},
+  {id:'s3',name:'② 2部',start:'22:30',end:'25:30',color:'#ff4466'},
 ];
-const APRIL_2026 = {
+const APR = {
   '2026-04-01':['s1'],'2026-04-02':['s1'],
   '2026-04-03':['s2','s3'],'2026-04-04':['s2','s3'],
   '2026-04-06':['s1'],'2026-04-07':['s1'],
@@ -283,361 +232,262 @@ const APRIL_2026 = {
   '2026-04-24':['s2','s3'],'2026-04-25':['s2','s3'],
   '2026-04-28':['s2','s3'],'2026-04-29':['s2','s3'],
 };
-
-// ===== STATE =====
-const today = new Date();
-let currentYear  = today.getFullYear();
-let currentMonth = today.getMonth();
-let shiftData    = {};
-let shiftTypes   = [];
-let templates    = [];
-let editingDate  = null;
-let tempSelected = [];
-let editingTypes = [];
-let tpCallback   = null;
-let isDark       = true;
-const DAY_LABELS  = ['日','月','火','水','木','金','土'];
-const MONTH_NAMES = ['1','2','3','4','5','6','7','8','9','10','11','12'];
+const TODAY = new Date();
+const DL = ['日','月','火','水','木','金','土'];
+const MN = ['1','2','3','4','5','6','7','8','9','10','11','12'];
 const HOURS = Array.from({length:30},(_,i)=>String(i).padStart(2,'0'));
 const MINS  = ['00','15','30','45'];
 
-// ===== THEME =====
-function toggleTheme() {
-  isDark = !isDark;
-  applyTheme();
-  localStorage.setItem('theme_rico', isDark ? 'dark' : 'light');
-}
-function applyTheme() {
-  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
-}
+let Y = TODAY.getFullYear(), M = TODAY.getMonth();
+let data={}, types=[], tpls=[], editDate=null, tmpSel=[], editTypes=[], tpCb=null, dark=true;
+let dTimer={};
 
-// ===== LOCAL SAVE =====
-function saveLocal() {
-  localStorage.setItem('shiftTypes_rico', JSON.stringify(shiftTypes));
-  localStorage.setItem('templates_rico', JSON.stringify(templates));
-}
+// THEME
+function toggleTheme(){dark=!dark;applyTheme();localStorage.setItem('th_rico',dark?'dark':'light')}
+function applyTheme(){document.documentElement.setAttribute('data-theme',dark?'dark':'light');document.getElementById('themeBtn').textContent=dark?'☀️':'🌙'}
 
-// ===== GAS JSONP =====
-function jsonpFetch(url) {
-  return new Promise((resolve, reject) => {
-    const cbName = 'cb_' + Date.now();
-    const script = document.createElement('script');
-    const timer = setTimeout(() => {
-      delete window[cbName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-      reject(new Error('timeout'));
-    }, 10000);
-    window[cbName] = (data) => {
-      clearTimeout(timer);
-      delete window[cbName];
-      if (script.parentNode) script.parentNode.removeChild(script);
-      resolve(data);
-    };
-    script.src = url + '&callback=' + cbName;
-    script.onerror = () => { clearTimeout(timer); reject(new Error('error')); };
-    document.head.appendChild(script);
+// LOCAL
+function saveLocal(){localStorage.setItem('ty_rico',JSON.stringify(types));localStorage.setItem('tp_rico',JSON.stringify(tpls))}
+
+// JSONP
+function jFetch(url){
+  return new Promise((res,rej)=>{
+    const cb='cb_'+Date.now();
+    const s=document.createElement('script');
+    const t=setTimeout(()=>{delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);rej(new Error('timeout'))},12000);
+    window[cb]=(d)=>{clearTimeout(t);delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);res(d)};
+    s.src=url+'&callback='+cb;
+    s.onerror=()=>{clearTimeout(t);if(s.parentNode)s.parentNode.removeChild(s);rej(new Error('error'))};
+    document.head.appendChild(s);
   });
 }
 
-async function loadShiftFromGAS() {
-  showToast('📡 読み込み中...');
-  try {
-    const url = GAS_URL + '?action=get&castName=' + encodeURIComponent(CAST_NAME) + '&year=' + currentYear + '&month=' + (currentMonth+1);
-    const json = await jsonpFetch(url);
-    if (json && json.status === 'ok' && json.shifts && Object.keys(json.shifts).length > 0) {
-      shiftData = {};
-      Object.entries(json.shifts).forEach(([date, arr]) => {
-        shiftData[date] = arr.map(s => s.shiftId);
-        arr.forEach(s => {
-          if (!shiftTypes.find(t => t.id === s.shiftId)) {
-            shiftTypes.push({ id: s.shiftId, name: s.name, start: s.start, end: s.end||'', color: COLOR_PALETTE[shiftTypes.length % COLOR_PALETTE.length] });
-          }
-        });
+// LOAD from GAS
+async function loadFromGAS(){
+  toast('📡 読み込み中...');
+  try{
+    const url=GAS+'?action=get&castName='+encodeURIComponent(CAST)+'&year='+Y+'&month='+(M+1);
+    const r=await jFetch(url);
+    if(r&&r.status==='ok'&&r.shifts&&Object.keys(r.shifts).length>0){
+      data={};
+      Object.entries(r.shifts).forEach(([date,arr])=>{
+        data[date]=arr.map(s=>s.shiftId);
+        arr.forEach(s=>{if(!types.find(t=>t.id===s.shiftId))types.push({id:s.shiftId,name:s.name,start:s.start,end:s.end||'',color:COLORS[types.length%COLORS.length]})});
       });
     } else {
-      shiftData = JSON.parse(JSON.stringify(APRIL_2026));
+      data=JSON.parse(JSON.stringify(APR));
     }
-  } catch(e) {
-    console.error('load error:', e);
-    shiftData = JSON.parse(JSON.stringify(APRIL_2026));
+  }catch(e){
+    console.error(e);
+    data=JSON.parse(JSON.stringify(APR));
   }
-  renderLegend();
-  renderCalendar();
-  showToast('');
+  renderLegend();renderCal();toast('');
 }
 
-function pushShiftToGAS() {
-  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
-  const shifts = [];
-  for (let d=1; d<=daysInMonth; d++) {
-    const key = dk(currentYear, currentMonth+1, d);
-    const sel = shiftData[key];
-    if (!sel||sel.length===0) continue;
-    sel.forEach(id => {
-      const t = shiftTypes.find(x=>x.id===id);
-      if (t) shifts.push({ date:key, shiftId:t.id, name:t.name, start:t.start, end:t.end||'' });
+// SAVE to GAS
+function saveToGAS(){
+  const dim=new Date(Y,M+1,0).getDate();
+  const shifts=[];
+  for(let d=1;d<=dim;d++){
+    const k=dk(Y,M+1,d);
+    const sel=data[k];
+    if(!sel||!sel.length)continue;
+    sel.forEach(id=>{
+      const t=types.find(x=>x.id===id);
+      if(t)shifts.push({date:k,shiftId:t.id,name:t.name,start:t.start,end:t.end||''});
     });
   }
-  const payload = encodeURIComponent(JSON.stringify({ castName:CAST_NAME, year:currentYear, month:currentMonth+1, shifts }));
-  const cbName = 'cb_save_' + Date.now();
-  const script = document.createElement('script');
-  window[cbName] = (data) => {
-    delete window[cbName];
-    if (script.parentNode) script.parentNode.removeChild(script);
-    if (data && data.status === 'ok') showToast('✅ 保存しました');
-    else showToast('❌ 保存エラー');
-  };
-  script.src = GAS_URL + '?action=save&data=' + payload + '&callback=' + cbName;
-  script.onerror = () => { if(script.parentNode) script.parentNode.removeChild(script); showToast('❌ 通信エラー'); };
-  document.head.appendChild(script);
-  showToast('💾 保存中...');
+  const payload=encodeURIComponent(JSON.stringify({castName:CAST,year:Y,month:M+1,shifts}));
+  const cb='cbs_'+Date.now();
+  const s=document.createElement('script');
+  window[cb]=(r)=>{delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);if(r&&r.status==='ok')toast('✅ 保存しました');else toast('❌ 保存エラー')};
+  s.src=GAS+'?action=save&data='+payload+'&callback='+cb;
+  s.onerror=()=>{if(s.parentNode)s.parentNode.removeChild(s);toast('❌ 通信エラー')};
+  document.head.appendChild(s);
+  toast('💾 保存中...');
 }
 
-// ===== LEGEND =====
-function renderLegend() {
-  document.getElementById('legend').innerHTML = shiftTypes.map(s =>
-    `<div class="legend-item"><div class="legend-dot" style="background:${s.color}"></div>${s.name}</div>`
-  ).join('');
+// LEGEND
+function renderLegend(){
+  document.getElementById('legend').innerHTML=types.map(s=>`<div class="li"><div class="ld" style="background:${s.color}"></div>${s.name}</div>`).join('');
 }
 
-// ===== CALENDAR =====
-function renderCalendar() {
-  document.getElementById('headerMonth').textContent = `${currentYear}年${MONTH_NAMES[currentMonth]}月`;
-  const el = document.getElementById('calendarWeeks');
-  el.innerHTML = '';
-  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
-  let days = [];
-  for (let i=0; i<firstDay; i++) days.push(null);
-  for (let d=1; d<=daysInMonth; d++) days.push(d);
-  while (days.length%7) days.push(null);
-  for (let w=0; w<days.length/7; w++) {
-    const weekEl = document.createElement('div');
-    weekEl.className = 'week';
-    for (let d=0; d<7; d++) {
-      const day = days[w*7+d];
-      const cell = document.createElement('div');
-      if (!day) { cell.className='day empty'; }
-      else {
-        const key = dk(currentYear, currentMonth+1, day);
-        const sel = shiftData[key]||[];
-        const isToday = currentYear===today.getFullYear() && currentMonth===today.getMonth() && day===today.getDate();
-        let cls = 'day';
-        if (d===0) cls+=' sunday';
-        if (d===6) cls+=' saturday';
-        if (isToday) cls+=' today';
-        cell.className = cls;
-        const labels = sel.map(id=>{
-          const t = shiftTypes.find(x=>x.id===id);
-          if (!t) return '';
-          return `<div class="day-shift-label" style="background:${t.color}">${t.name}<br>${t.start}〜</div>`;
-        }).join('');
-        cell.innerHTML = `<div class="day-num">${day}</div><div class="day-shifts">${labels}</div>`;
-        cell.onclick = ()=>openDayModal(currentYear, currentMonth+1, day, d);
+// CALENDAR
+function dk(y,m,d){return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
+function renderCal(){
+  document.getElementById('hm').textContent=`${Y}年${MN[M]}月`;
+  const el=document.getElementById('weeks');el.innerHTML='';
+  const fd=new Date(Y,M,1).getDay(),dim=new Date(Y,M+1,0).getDate();
+  let days=[];
+  for(let i=0;i<fd;i++)days.push(null);
+  for(let d=1;d<=dim;d++)days.push(d);
+  while(days.length%7)days.push(null);
+  for(let w=0;w<days.length/7;w++){
+    const we=document.createElement('div');we.className='week';
+    for(let d=0;d<7;d++){
+      const day=days[w*7+d];
+      const c=document.createElement('div');
+      if(!day){c.className='day empty';}
+      else{
+        const k=dk(Y,M+1,day),sel=data[k]||[];
+        const isT=Y===TODAY.getFullYear()&&M===TODAY.getMonth()&&day===TODAY.getDate();
+        let cls='day';
+        if(d===0)cls+=' sun';if(d===6)cls+=' sat';if(isT)cls+=' today';
+        c.className=cls;
+        const labs=sel.map(id=>{const t=types.find(x=>x.id===id);if(!t)return '';return `<div class="dsl" style="background:${t.color}">${t.name}<br>${t.start}〜</div>`;}).join('');
+        c.innerHTML=`<div class="dn">${day}</div><div class="ds">${labs}</div>`;
+        c.onclick=()=>openDay(Y,M+1,day,d);
       }
-      weekEl.appendChild(cell);
+      we.appendChild(c);
     }
-    el.appendChild(weekEl);
+    el.appendChild(we);
   }
 }
-function dk(y,m,d) { return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
-function changeMonth(dir) {
-  currentMonth += dir;
-  if (currentMonth>11) { currentMonth=0; currentYear++; }
-  if (currentMonth<0)  { currentMonth=11; currentYear--; }
-  loadShiftFromGAS();
+function changeMonth(dir){
+  M+=dir;if(M>11){M=0;Y++;}if(M<0){M=11;Y--;}
+  loadFromGAS();
 }
 
-// ===== DAY MODAL =====
-function openDayModal(y, m, d, dow) {
-  editingDate = dk(y, m, d);
-  tempSelected = [...(shiftData[editingDate]||[])];
-  document.getElementById('dayModalTitle').textContent = `${m}月${d}日（${DAY_LABELS[dow]}）`;
-  renderShiftList();
-  renderTplApplyBar();
-  document.getElementById('dayOverlay').classList.add('open');
+// DAY MODAL
+function openDay(y,m,d,dow){
+  editDate=dk(y,m,d);tmpSel=[...(data[editDate]||[])];
+  document.getElementById('dayTitle').textContent=`${m}月${d}日（${DL[dow]}）`;
+  renderSrl();renderTabBar();
+  document.getElementById('dayOv').classList.add('open');
 }
-function renderShiftList() {
-  document.getElementById('shiftList').innerHTML = shiftTypes.map(s => {
-    const checked = tempSelected.includes(s.id);
-    const timeLabel = s.end ? `${s.start} 〜 ${s.end}` : `${s.start}〜`;
-    return `<div class="shift-row${checked?' selected':''}" onclick="toggleShift('${s.id}')">
-      <div class="shift-check">${checked?'✅':'　'}</div>
-      <div class="shift-info"><div class="shift-name">${s.name}</div><div class="shift-time">${timeLabel}</div></div>
-      <div class="shift-color-bar" style="background:${s.color}"></div>
-    </div>`;
+function renderSrl(){
+  document.getElementById('srl').innerHTML=types.map(s=>{
+    const chk=tmpSel.includes(s.id);
+    const tl=s.end?`${s.start} 〜 ${s.end}`:`${s.start}〜`;
+    return `<div class="sr${chk?' sel':''}" onclick="togSel('${s.id}')"><div class="sc">${chk?'✅':'　'}</div><div class="si"><div class="sn">${s.name}</div><div class="st">${tl}</div></div><div class="scb" style="background:${s.color}"></div></div>`;
   }).join('');
 }
-function renderTplApplyBar() {
-  const hasAny = templates.some(t=>t.shifts.length>0);
-  const label = document.getElementById('tplApplyLabel');
-  const bar   = document.getElementById('tplApplyBar');
-  if (!hasAny) { label.textContent=''; bar.innerHTML=''; return; }
-  label.textContent = 'テンプレートを適用';
-  bar.innerHTML = templates.map((t,i) =>
-    t.shifts.length>0 ? `<button class="tpl-apply-chip" onclick="applyTemplate(${i})">${t.name||'パターン'+(i+1)}</button>` : ''
-  ).join('');
+function renderTabBar(){
+  const hasAny=tpls.some(t=>t.shifts.length>0);
+  const lbl=document.getElementById('talLabel'),bar=document.getElementById('tabBar');
+  if(!hasAny){lbl.textContent='';bar.innerHTML='';return;}
+  lbl.textContent='テンプレートを適用';
+  bar.innerHTML=tpls.map((t,i)=>t.shifts.length>0?`<button class="tac" onclick="applyTpl(${i})">${t.name||'パターン'+(i+1)}</button>`:'').join('');
 }
-function applyTemplate(idx) { tempSelected = [...templates[idx].shifts]; renderShiftList(); }
-function toggleShift(id) {
-  tempSelected.includes(id) ? (tempSelected=tempSelected.filter(x=>x!==id)) : tempSelected.push(id);
-  renderShiftList();
-}
-function clearDayModal() { tempSelected=[]; renderShiftList(); }
-function closeDayOverlay(e) {
-  if (e && e.target!==document.getElementById('dayOverlay')) return;
-  document.getElementById('dayOverlay').classList.remove('open');
-}
-function saveDay() {
-  if (tempSelected.length===0) delete shiftData[editingDate];
-  else shiftData[editingDate] = [...tempSelected];
-  renderCalendar();
-  document.getElementById('dayOverlay').classList.remove('open');
-  pushShiftToGAS();
+function applyTpl(i){tmpSel=[...tpls[i].shifts];renderSrl()}
+function togSel(id){tmpSel.includes(id)?tmpSel=tmpSel.filter(x=>x!==id):tmpSel.push(id);renderSrl()}
+function clearDay(){tmpSel=[];renderSrl()}
+function closeDayOv(e){if(e&&e.target!==document.getElementById('dayOv'))return;document.getElementById('dayOv').classList.remove('open')}
+function saveDay(){
+  if(tmpSel.length===0)delete data[editDate];else data[editDate]=[...tmpSel];
+  renderCal();document.getElementById('dayOv').classList.remove('open');
+  saveToGAS();
 }
 
-// ===== TEMPLATE MODAL =====
-function openTemplateModal() { renderTplList(); document.getElementById('tplOverlay').classList.add('open'); }
-function closeTplOverlay(e) {
-  if (e && e.target!==document.getElementById('tplOverlay')) return;
-  document.getElementById('tplOverlay').classList.remove('open');
-}
-function renderTplList() {
-  document.getElementById('tplList').innerHTML = templates.map((t,i) => {
-    const preview = t.shifts.length===0 ? '（未設定）' : t.shifts.map(id=>{ const st=shiftTypes.find(x=>x.id===id); return st?st.name:''; }).filter(Boolean).join('・');
-    return `<div class="tpl-item">
-      <div class="tpl-slot-num">${i+1}</div>
-      <div class="tpl-info">
-        <input class="tpl-name-input" id="tplName${i}" value="${t.name}" placeholder="パターン名" oninput="templates[${i}].name=this.value"/>
-        <div class="tpl-preview">${preview}</div>
-      </div>
-      <div class="tpl-actions">
-        <button class="tpl-btn save-now" onclick="saveCurrentAsTemplate(${i})">現在を保存</button>
-        ${t.shifts.length>0 ? `<button class="tpl-btn clear-tpl" onclick="clearTemplate(${i})">削除</button>` : ''}
-      </div>
-    </div>`;
+// TEMPLATE
+function openTpl(){renderTpl();document.getElementById('tplOv').classList.add('open')}
+function closeTplOv(e){if(e&&e.target!==document.getElementById('tplOv'))return;document.getElementById('tplOv').classList.remove('open')}
+function renderTpl(){
+  document.getElementById('tli').innerHTML=tpls.map((t,i)=>{
+    const prev=t.shifts.length===0?'（未設定）':t.shifts.map(id=>{const s=types.find(x=>x.id===id);return s?s.name:''}).filter(Boolean).join('・');
+    return `<div class="tit"><div class="tsn">${i+1}</div><div class="tin"><input class="tni" id="tn${i}" value="${t.name}" placeholder="パターン名" oninput="tpls[${i}].name=this.value"/><div class="tpv">${prev}</div></div><div class="tac2"><button class="tb sv" onclick="saveTpl(${i})">現在を保存</button>${t.shifts.length>0?`<button class="tb dl" onclick="delTpl(${i})">削除</button>`:''}</div></div>`;
   }).join('');
 }
-function saveCurrentAsTemplate(idx) {
-  if (tempSelected.length===0) { showToast('シフトを選択してから保存してください'); return; }
-  templates[idx].shifts = [...tempSelected];
-  if (!templates[idx].name) templates[idx].name = 'パターン'+(idx+1);
-  saveLocal(); renderTplList(); showToast(`✅ テンプレート${idx+1}に保存しました`);
+function saveTpl(i){
+  if(tmpSel.length===0){toast('シフトを選択してから保存してください');return;}
+  tpls[i].shifts=[...tmpSel];if(!tpls[i].name)tpls[i].name='パターン'+(i+1);
+  saveLocal();renderTpl();toast(`✅ テンプレート${i+1}に保存しました`);
 }
-function clearTemplate(idx) { templates[idx].shifts=[]; templates[idx].name=''; saveLocal(); renderTplList(); showToast('テンプレートを削除しました'); }
+function delTpl(i){tpls[i]={name:'',shifts:[]};saveLocal();renderTpl();toast('削除しました')}
 
-// ===== SETTINGS =====
-function openSettings() { editingTypes=JSON.parse(JSON.stringify(shiftTypes)); renderSettingCards(); document.getElementById('settingsOverlay').classList.add('open'); }
-function renderSettingCards() {
-  document.getElementById('shiftSettingCards').innerHTML = editingTypes.map((s,i) => `
-    <div class="shift-setting-card">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:0.72rem;font-weight:700;color:var(--muted)">シフト ${i+1}</span>
-        <button class="remove-shift-btn" onclick="removeShiftType(${i})" ${editingTypes.length<=1?'disabled style="opacity:0.3"':''}>✕</button>
-      </div>
-      <div class="setting-row"><span class="setting-label">名前</span><input class="setting-input" value="${s.name}" oninput="editingTypes[${i}].name=this.value"/></div>
-      <div class="setting-row"><span class="setting-label">開始</span><input class="setting-input" value="${s.start}" readonly style="cursor:pointer" onclick="openTimePicker('開始時間','${s.name}','${s.start}',v=>{editingTypes[${i}].start=v;renderSettingCards();})"/></div>
-      <div class="setting-row">
-        <span class="setting-label">終了</span>
-        <input class="setting-input" value="${s.end}" readonly style="cursor:pointer" onclick="openTimePicker('終了時間','${s.name}','${s.end||s.start}',v=>{editingTypes[${i}].end=v;renderSettingCards();})"/>
-        <button style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.72rem;white-space:nowrap" onclick="editingTypes[${i}].end='';renderSettingCards()">なし</button>
-      </div>
-      <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-        <span class="setting-label">色</span>
-        <div class="color-pick-row">${COLOR_PALETTE.map(c=>`<div class="color-chip${s.color===c?' selected':''}" style="background:${c}" onclick="editingTypes[${i}].color='${c}';renderSettingCards()"></div>`).join('')}</div>
-      </div>
+// SETTINGS
+function openSettings(){editTypes=JSON.parse(JSON.stringify(types));renderSCards();document.getElementById('setOv').classList.add('open')}
+function renderSCards(){
+  document.getElementById('sCards').innerHTML=editTypes.map((s,i)=>`
+    <div class="ssc">
+      <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:.72rem;font-weight:700;color:var(--muted)">シフト ${i+1}</span><button class="rsb" onclick="delType(${i})" ${editTypes.length<=1?'disabled style="opacity:.3"':''}>✕</button></div>
+      <div class="sr2"><span class="sl">名前</span><input class="si2" value="${s.name}" oninput="editTypes[${i}].name=this.value"/></div>
+      <div class="sr2"><span class="sl">開始</span><input class="si2" value="${s.start}" readonly style="cursor:pointer" onclick="openTP('開始時間','${s.name}','${s.start}',v=>{editTypes[${i}].start=v;renderSCards()})"/></div>
+      <div class="sr2"><span class="sl">終了</span><input class="si2" value="${s.end}" readonly style="cursor:pointer" onclick="openTP('終了時間','${s.name}','${s.end||s.start}',v=>{editTypes[${i}].end=v;renderSCards()})"/><button style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.72rem;white-space:nowrap" onclick="editTypes[${i}].end='';renderSCards()">なし</button></div>
+      <div class="sr2" style="flex-direction:column;align-items:flex-start;gap:6px"><span class="sl">色</span><div class="cpr">${COLORS.map(c=>`<div class="cc${s.color===c?' sel':''}" style="background:${c}" onclick="editTypes[${i}].color='${c}';renderSCards()"></div>`).join('')}</div></div>
     </div>`).join('');
 }
-function addShiftType() { editingTypes.push({id:'s'+Date.now(),name:'新しいシフト',start:'20:00',end:'23:00',color:COLOR_PALETTE[editingTypes.length%COLOR_PALETTE.length]}); renderSettingCards(); }
-function removeShiftType(i) { editingTypes.splice(i,1); renderSettingCards(); }
-function saveSettings() { shiftTypes=JSON.parse(JSON.stringify(editingTypes)); saveLocal(); renderLegend(); renderCalendar(); document.getElementById('settingsOverlay').classList.remove('open'); showToast('✅ 設定を保存しました'); }
-function closeSettingsOverlay(e) { if (e && e.target!==document.getElementById('settingsOverlay')) return; document.getElementById('settingsOverlay').classList.remove('open'); }
+function addType(){editTypes.push({id:'s'+Date.now(),name:'新しいシフト',start:'20:00',end:'23:00',color:COLORS[editTypes.length%COLORS.length]});renderSCards()}
+function delType(i){editTypes.splice(i,1);renderSCards()}
+function saveSettings(){types=JSON.parse(JSON.stringify(editTypes));saveLocal();renderLegend();renderCal();document.getElementById('setOv').classList.remove('open');toast('✅ 設定を保存しました')}
+function closeSetOv(e){if(e&&e.target!==document.getElementById('setOv'))return;document.getElementById('setOv').classList.remove('open')}
 
-// ===== TIME PICKER =====
-function buildDrums() {
-  const dH=document.getElementById('drumH'); const dM=document.getElementById('drumM');
-  dH.innerHTML=`<div class="drum-pad"></div>`+HOURS.map(h=>`<div class="drum-item">${h}</div>`).join('')+`<div class="drum-pad"></div>`;
-  dM.innerHTML=`<div class="drum-pad"></div>`+MINS.map(m=>`<div class="drum-item">${m}</div>`).join('')+`<div class="drum-pad"></div>`;
+// TIME PICKER
+function buildDrums(){
+  const dH=document.getElementById('drH'),dM=document.getElementById('drM');
+  dH.innerHTML='<div class="drp"></div>'+HOURS.map(h=>`<div class="dri">${h}</div>`).join('')+'<div class="drp"></div>';
+  dM.innerHTML='<div class="drp"></div>'+MINS.map(m=>`<div class="dri">${m}</div>`).join('')+'<div class="drp"></div>';
 }
-function scrollDrumTo(drum,items,val) { const idx=items.indexOf(String(val).padStart(2,'0')); if(idx>=0) drum.scrollTop=idx*44; }
-function getDrumValue(drum,items) { return items[Math.max(0,Math.min(Math.round(drum.scrollTop/44),items.length-1))]; }
-let drumTimers={};
-function onDrumScroll(w) {
-  clearTimeout(drumTimers[w]);
-  drumTimers[w]=setTimeout(()=>{
-    const drum=document.getElementById(`drum${w}`); const items=w==='H'?HOURS:MINS;
-    const idx=Math.round(drum.scrollTop/44);
-    drum.scrollTo({top:idx*44,behavior:'smooth'});
-    drum.querySelectorAll('.drum-item').forEach((el,i)=>el.classList.toggle('active',i===idx));
+function sDrumTo(dr,items,val){const i=items.indexOf(String(val).padStart(2,'0'));if(i>=0)dr.scrollTop=i*44}
+function gDrumVal(dr,items){return items[Math.max(0,Math.min(Math.round(dr.scrollTop/44),items.length-1))]}
+function onDS(w){
+  clearTimeout(dTimer[w]);
+  dTimer[w]=setTimeout(()=>{
+    const dr=document.getElementById('dr'+w),items=w==='H'?HOURS:MINS;
+    const i=Math.round(dr.scrollTop/44);
+    dr.scrollTo({top:i*44,behavior:'smooth'});
+    dr.querySelectorAll('.dri').forEach((el,j)=>el.classList.toggle('active',j===i));
   },80);
 }
-function openTimePicker(label,sub,current,cb) {
+function openTP(label,sub,cur,cb){
   buildDrums();
-  document.getElementById('timePickerTitle').textContent=label;
-  document.getElementById('timePickerSub').textContent=sub;
-  tpCallback=cb;
-  const parts=(current||'22:00').split(':');
-  const hStr=String(parts[0]||'22').padStart(2,'0');
-  const mStr=parts[1]||'00';
-  const closestM=MINS.reduce((a,b)=>Math.abs(parseInt(b)-parseInt(mStr))<Math.abs(parseInt(a)-parseInt(mStr))?b:a);
+  document.getElementById('tpTitle').textContent=label;
+  document.getElementById('tpSub').textContent=sub;
+  tpCb=cb;
+  const p=(cur||'22:00').split(':');
+  const hS=String(p[0]||'22').padStart(2,'0'),mS=p[1]||'00';
+  const cM=MINS.reduce((a,b)=>Math.abs(parseInt(b)-parseInt(mS))<Math.abs(parseInt(a)-parseInt(mS))?b:a);
   setTimeout(()=>{
-    const dH=document.getElementById('drumH'); const dM=document.getElementById('drumM');
-    scrollDrumTo(dH,HOURS,hStr); scrollDrumTo(dM,MINS,closestM);
-    const hIdx=HOURS.indexOf(hStr); const mIdx=MINS.indexOf(closestM);
-    dH.querySelectorAll('.drum-item').forEach((el,i)=>el.classList.toggle('active',i===hIdx));
-    dM.querySelectorAll('.drum-item').forEach((el,i)=>el.classList.toggle('active',i===mIdx));
+    const dH=document.getElementById('drH'),dM=document.getElementById('drM');
+    sDrumTo(dH,HOURS,hS);sDrumTo(dM,MINS,cM);
+    dH.querySelectorAll('.dri').forEach((el,i)=>el.classList.toggle('active',i===HOURS.indexOf(hS)));
+    dM.querySelectorAll('.dri').forEach((el,i)=>el.classList.toggle('active',i===MINS.indexOf(cM)));
   },60);
-  document.getElementById('timePickerOverlay').classList.add('open');
+  document.getElementById('tpo').classList.add('open');
 }
-function confirmTimePicker() {
-  const h=getDrumValue(document.getElementById('drumH'),HOURS);
-  const m=getDrumValue(document.getElementById('drumM'),MINS);
-  document.getElementById('timePickerOverlay').classList.remove('open');
-  if(tpCallback) tpCallback(`${h}:${m}`);
+function confirmTP(){
+  const h=gDrumVal(document.getElementById('drH'),HOURS),m=gDrumVal(document.getElementById('drM'),MINS);
+  document.getElementById('tpo').classList.remove('open');
+  if(tpCb)tpCb(`${h}:${m}`);
 }
 
-// ===== PREVIEW =====
-function openPreview() {
-  const daysInMonth=new Date(currentYear,currentMonth+1,0).getDate();
-  document.getElementById('previewTitle').textContent=`${currentYear}年${MONTH_NAMES[currentMonth]}月 シフト確認`;
-  const list=document.getElementById('previewList');
-  list.innerHTML=''; let found=false;
-  for(let d=1;d<=daysInMonth;d++){
-    const key=dk(currentYear,currentMonth+1,d); const sel=shiftData[key];
-    if(!sel||sel.length===0) continue; found=true;
-    const dow=new Date(currentYear,currentMonth,d).getDay();
-    const item=document.createElement('div'); item.className='preview-item';
-    const rows=sel.map(id=>{ const t=shiftTypes.find(x=>x.id===id); if(!t) return ''; const time=t.end?`${t.start}〜${t.end}`:`${t.start}〜`; return `<div class="preview-shift-row" style="color:${t.color}">${t.name}　${time}</div>`; }).join('');
-    item.innerHTML=`<div class="preview-date">${currentMonth+1}/${d}（${DAY_LABELS[dow]}）</div><div class="preview-shifts">${rows}</div>`;
+// PREVIEW
+function openPreview(){
+  const dim=new Date(Y,M+1,0).getDate();
+  document.getElementById('prevTitle').textContent=`${Y}年${MN[M]}月 シフト確認`;
+  const list=document.getElementById('prevList');list.innerHTML='';let found=false;
+  for(let d=1;d<=dim;d++){
+    const k=dk(Y,M+1,d),sel=data[k];
+    if(!sel||!sel.length)continue;found=true;
+    const dow=new Date(Y,M,d).getDay();
+    const item=document.createElement('div');item.className='pi';
+    const rows=sel.map(id=>{const t=types.find(x=>x.id===id);if(!t)return '';const tm=t.end?`${t.start}〜${t.end}`:`${t.start}〜`;return `<div class="psr" style="color:${t.color}">${t.name}　${tm}</div>`;}).join('');
+    item.innerHTML=`<div class="pd">${M+1}/${d}（${DL[dow]}）</div><div class="psh">${rows}</div>`;
     list.appendChild(item);
   }
-  if(!found) list.innerHTML='<div class="preview-empty">まだシフトが入力されていません</div>';
-  document.getElementById('previewOverlay').classList.add('open');
+  if(!found)list.innerHTML='<div class="pe">まだシフトが入力されていません</div>';
+  document.getElementById('po').classList.add('open');
 }
-function closePreview(e) { if(e&&e.target!==document.getElementById('previewOverlay')) return; document.getElementById('previewOverlay').classList.remove('open'); }
+function closePrev(e){if(e&&e.target!==document.getElementById('po'))return;document.getElementById('po').classList.remove('open')}
 
-// ===== SUBMIT =====
-async function submitShift() { pushShiftToGAS(); }
+// SUBMIT
+function submitShift(){saveToGAS()}
 
-// ===== TOAST =====
-function showToast(msg) {
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  if(msg){ t.classList.add('show'); } else { t.classList.remove('show'); }
+// TOAST
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;
+  if(msg){t.classList.add('show');}else{t.classList.remove('show');}
+  if(msg)setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// ===== INIT =====
-function init() {
-  const st=localStorage.getItem('shiftTypes_rico');
-  shiftTypes=st?JSON.parse(st):JSON.parse(JSON.stringify(DEFAULT_SHIFTS));
-  const tp=localStorage.getItem('templates_rico');
-  templates=tp?JSON.parse(tp):Array.from({length:MAX_TEMPLATES},()=>({name:'',shifts:[]}));
-  while(templates.length<MAX_TEMPLATES) templates.push({name:'',shifts:[]});
-  const theme=localStorage.getItem('theme_rico');
-  isDark=theme!=='light';
+// INIT
+function init(){
+  const ty=localStorage.getItem('ty_rico');types=ty?JSON.parse(ty):JSON.parse(JSON.stringify(DEF_TYPES));
+  const tp=localStorage.getItem('tp_rico');tpls=tp?JSON.parse(tp):Array.from({length:MAX_TPL},()=>({name:'',shifts:[]}));
+  while(tpls.length<MAX_TPL)tpls.push({name:'',shifts:[]});
+  const th=localStorage.getItem('th_rico');dark=th!=='light';
   applyTheme();
-  loadShiftFromGAS();
+  loadFromGAS();
 }
 init();
 </script>
