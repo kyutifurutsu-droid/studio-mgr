@@ -563,6 +563,17 @@ const APRIL_2025 = {
   '2026-04-29': ['s2','s3'],
 };
 
+// ===== THEME =====
+function toggleTheme() {
+  isDark = !isDark;
+  applyTheme();
+  localStorage.setItem('theme_rico', isDark ? 'dark' : 'light');
+}
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
+}
+
 // ===== PERSIST =====
 function load() {
   const st = localStorage.getItem('shiftTypes_rico');
