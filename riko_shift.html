@@ -294,7 +294,7 @@ function saveToGAS(){
     if(!sel||!sel.length)continue;
     sel.forEach(id=>{
       const t=types.find(x=>x.id===id);
-      if(t)shifts.push({date:k,shiftId:t.id,name:t.name,start:t.start,end:t.end||''});
+      if(t)shifts.push({date:k,shiftId:t.id,start:t.start,end:t.end||''});
     });
   }
   const payload=encodeURIComponent(JSON.stringify({castName:CAST,year:Y,month:M+1,shifts}));
