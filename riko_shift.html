@@ -583,8 +583,8 @@ function save() {
 async function loadShiftFromGAS() {
   showToast('📡 読み込み中...');
   try {
-    const json = await jsonpFetch(`${GAS_URL}?castName=${encodeURIComponent(CAST_NAME)}&year=${currentYear}&month=${currentMonth+1}`);
-    if (json && json.status === 'ok' && Object.keys(json.shifts).length > 0) {
+    const json = await jsonpFetch(GAS_URL + '?action=get&castName=' + encodeURIComponent(CAST_NAME) + '&year=' + currentYear + '&month=' + (currentMonth+1));
+    if (json && json.status === 'ok' && json.shifts && Object.keys(json.shifts).length > 0) {
       shiftData = {};
       Object.entries(json.shifts).forEach(([date, arr]) => {
         shiftData[date] = arr.map(s => s.shiftId);
@@ -598,7 +598,7 @@ async function loadShiftFromGAS() {
       shiftData = JSON.parse(JSON.stringify(APRIL_2025));
     }
   } catch(e) {
-    console.error('loadShiftFromGAS error:', e);
+    console.error('load error:', e);
     shiftData = JSON.parse(JSON.stringify(APRIL_2025));
   }
   renderLegend();
@@ -606,368 +606,53 @@ async function loadShiftFromGAS() {
   showToast('');
 }
 
-// JSONP方式でGASにGETリクエスト（CORS回避）
 function jsonpFetch(url) {
   return new Promise((resolve, reject) => {
-    const cbName = 'gasCallback_' + Date.now();
+    const cbName = 'cb_' + Date.now();
     const script = document.createElement('script');
-    const timeout = setTimeout(() => {
+    const timer = setTimeout(() => {
       delete window[cbName];
-      document.body.removeChild(script);
+      if (script.parentNode) script.parentNode.removeChild(script);
       reject(new Error('timeout'));
     }, 10000);
     window[cbName] = (data) => {
-      clearTimeout(timeout);
+      clearTimeout(timer);
       delete window[cbName];
-      document.body.removeChild(script);
+      if (script.parentNode) script.parentNode.removeChild(script);
       resolve(data);
     };
     script.src = url + '&callback=' + cbName;
-    script.onerror = () => { clearTimeout(timeout); reject(new Error('script error')); };
-    document.body.appendChild(script);
+    script.onerror = () => { clearTimeout(timer); reject(new Error('error')); };
+    document.head.appendChild(script);
   });
 }
 
-// ===== THEME =====
-function toggleTheme() {
-  isDark = !isDark;
-  applyTheme();
-  localStorage.setItem('theme_rico', isDark ? 'dark' : 'light');
-}
-function applyTheme() {
-  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌙';
-}
-
-// ===== LEGEND =====
-function renderLegend() {
-  document.getElementById('legend').innerHTML = shiftTypes.map(s =>
-    `<div class="legend-item">
-      <div class="legend-dot" style="background:${s.color}"></div>${s.name}
-    </div>`
-  ).join('');
-}
-
-// ===== CALENDAR =====
-function renderCalendar() {
-  document.getElementById('headerMonth').textContent =
-    `${currentYear}年${MONTH_NAMES[currentMonth]}月`;
-  const el = document.getElementById('calendarWeeks');
-  el.innerHTML = '';
-  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+function pushShiftToGAS() {
   const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
-  let days = [];
-  for (let i=0; i<firstDay; i++) days.push(null);
-  for (let d=1; d<=daysInMonth; d++) days.push(d);
-  while (days.length%7) days.push(null);
-
-  for (let w=0; w<days.length/7; w++) {
-    const weekEl = document.createElement('div');
-    weekEl.className = 'week';
-    for (let d=0; d<7; d++) {
-      const day = days[w*7+d];
-      const cell = document.createElement('div');
-      if (!day) { cell.className='day empty'; }
-      else {
-        const key = dk(currentYear, currentMonth+1, day);
-        const sel = shiftData[key]||[];
-        const isToday = currentYear===today.getFullYear() && currentMonth===today.getMonth() && day===today.getDate();
-        let cls = 'day';
-        if (d===0) cls+=' sunday';
-        if (d===6) cls+=' saturday';
-        if (isToday) cls+=' today';
-        cell.className = cls;
-        const labels = sel.map(id=>{
-          const t = shiftTypes.find(x=>x.id===id);
-          if (!t) return '';
-          return `<div class="day-shift-label" style="background:${t.color}">${t.name}<br>${t.start}〜</div>`;
-        }).join('');
-        cell.innerHTML = `<div class="day-num">${day}</div><div class="day-shifts">${labels}</div>`;
-        cell.onclick = ()=>openDayModal(currentYear, currentMonth+1, day, d);
-      }
-      weekEl.appendChild(cell);
-    }
-    el.appendChild(weekEl);
-  }
-}
-function dk(y,m,d) { return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
-function changeMonth(dir) {
-  currentMonth += dir;
-  if (currentMonth>11) { currentMonth=0; currentYear++; }
-  if (currentMonth<0)  { currentMonth=11; currentYear--; }
-  loadShiftFromGAS();
-}
-
-// ===== DAY MODAL =====
-function openDayModal(y, m, d, dow) {
-  editingDate = dk(y, m, d);
-  tempSelected = [...(shiftData[editingDate]||[])];
-  document.getElementById('dayModalTitle').textContent = `${m}月${d}日（${DAY_LABELS[dow]}）`;
-  renderShiftList();
-  renderTplApplyBar();
-  document.getElementById('dayOverlay').classList.add('open');
-}
-function renderShiftList() {
-  document.getElementById('shiftList').innerHTML = shiftTypes.map(s => {
-    const checked = tempSelected.includes(s.id);
-    const timeLabel = s.end ? `${s.start} 〜 ${s.end}` : `${s.start}〜`;
-    return `<div class="shift-row${checked?' selected':''}" onclick="toggleShift('${s.id}')">
-      <div class="shift-check">${checked?'✅':'　'}</div>
-      <div class="shift-info">
-        <div class="shift-name">${s.name}</div>
-        <div class="shift-time">${timeLabel}</div>
-      </div>
-      <div class="shift-color-bar" style="background:${s.color}"></div>
-    </div>`;
-  }).join('');
-}
-function renderTplApplyBar() {
-  const hasAny = templates.some(t=>t.shifts.length>0);
-  const label = document.getElementById('tplApplyLabel');
-  const bar   = document.getElementById('tplApplyBar');
-  if (!hasAny) { label.textContent=''; bar.innerHTML=''; return; }
-  label.textContent = 'テンプレートを適用';
-  bar.innerHTML = templates.map((t,i) =>
-    t.shifts.length>0
-      ? `<button class="tpl-apply-chip" onclick="applyTemplate(${i})">${t.name||'パターン'+(i+1)}</button>`
-      : ''
-  ).join('');
-}
-function applyTemplate(idx) {
-  tempSelected = [...templates[idx].shifts];
-  renderShiftList();
-}
-function toggleShift(id) {
-  tempSelected.includes(id)
-    ? (tempSelected = tempSelected.filter(x=>x!==id))
-    : tempSelected.push(id);
-  renderShiftList();
-}
-function clearDayModal() { tempSelected=[]; renderShiftList(); }
-function closeDayOverlay(e) {
-  if (e && e.target!==document.getElementById('dayOverlay')) return;
-  document.getElementById('dayOverlay').classList.remove('open');
-}
-function saveDay() {
-  if (tempSelected.length===0) delete shiftData[editingDate];
-  else shiftData[editingDate] = [...tempSelected];
-  save();
-  renderCalendar();
-  document.getElementById('dayOverlay').classList.remove('open');
-  // 変更を即座にGASに保存
-  pushShiftToGAS();
-}
-
-// ===== TEMPLATE MODAL =====
-function openTemplateModal() {
-  renderTplList();
-  document.getElementById('tplOverlay').classList.add('open');
-}
-function closeTplOverlay(e) {
-  if (e && e.target!==document.getElementById('tplOverlay')) return;
-  document.getElementById('tplOverlay').classList.remove('open');
-}
-function renderTplList() {
-  document.getElementById('tplList').innerHTML = templates.map((t, i) => {
-    const preview = t.shifts.length===0
-      ? '（未設定）'
-      : t.shifts.map(id=>{
-          const st = shiftTypes.find(x=>x.id===id);
-          return st ? st.name : '';
-        }).filter(Boolean).join('・');
-    return `<div class="tpl-item">
-      <div class="tpl-slot-num">${i+1}</div>
-      <div class="tpl-info">
-        <input class="tpl-name-input" id="tplName${i}"
-          value="${t.name}" placeholder="パターン名（例：週末）"
-          oninput="templates[${i}].name=this.value"/>
-        <div class="tpl-preview" id="tplPreview${i}">${preview}</div>
-      </div>
-      <div class="tpl-actions">
-        <button class="tpl-btn save-now" onclick="saveCurrentAsTemplate(${i})">現在を保存</button>
-        ${t.shifts.length>0
-          ? `<button class="tpl-btn clear-tpl" onclick="clearTemplate(${i})">削除</button>`
-          : ''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function saveCurrentAsTemplate(idx) {
-  // 現在のtempSelectedがあれば使う、なければ今月のシフトから収集はしない
-  // テンプレートは「今dayModalで選んでいる状態」を保存
-  if (tempSelected.length === 0) {
-    showToast('シフトを選択してから保存してください');
-    return;
-  }
-  templates[idx].shifts = [...tempSelected];
-  if (!templates[idx].name) {
-    templates[idx].name = 'パターン' + (idx+1);
-    const inp = document.getElementById(`tplName${idx}`);
-    if (inp) inp.value = templates[idx].name;
-  }
-  save();
-  renderTplList();
-  showToast(`✅ テンプレート${idx+1}に保存しました`);
-}
-
-function clearTemplate(idx) {
-  templates[idx].shifts = [];
-  templates[idx].name = '';
-  save();
-  renderTplList();
-  showToast('テンプレートを削除しました');
-}
-
-// ===== SETTINGS =====
-function openSettings() {
-  editingTypes = JSON.parse(JSON.stringify(shiftTypes));
-  renderSettingCards();
-  document.getElementById('settingsOverlay').classList.add('open');
-}
-function renderSettingCards() {
-  document.getElementById('shiftSettingCards').innerHTML = editingTypes.map((s,i) => `
-    <div class="shift-setting-card">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:0.72rem;font-weight:700;color:var(--muted)">シフト ${i+1}</span>
-        <button class="remove-shift-btn" onclick="removeShiftType(${i})"
-          ${editingTypes.length<=1?'disabled style="opacity:0.3"':''}>✕</button>
-      </div>
-      <div class="setting-row">
-        <span class="setting-label">名前</span>
-        <input class="setting-input" value="${s.name}"
-          oninput="editingTypes[${i}].name=this.value"/>
-      </div>
-      <div class="setting-row">
-        <span class="setting-label">開始</span>
-        <input class="setting-input" value="${s.start}" readonly style="cursor:pointer"
-          onclick="openTimePicker('開始時間','${s.name}','${s.start}',v=>{editingTypes[${i}].start=v;renderSettingCards();})"/>
-      </div>
-      <div class="setting-row">
-        <span class="setting-label">終了</span>
-        <input class="setting-input" value="${s.end}" readonly style="cursor:pointer"
-          onclick="openTimePicker('終了時間','${s.name}','${s.end||s.start}',v=>{editingTypes[${i}].end=v;renderSettingCards();})"/>
-        <button style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.72rem;white-space:nowrap"
-          onclick="editingTypes[${i}].end='';renderSettingCards()">なし</button>
-      </div>
-      <div class="setting-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-        <span class="setting-label">色</span>
-        <div class="color-pick-row">
-          ${COLOR_PALETTE.map(c=>
-            `<div class="color-chip${s.color===c?' selected':''}" style="background:${c}"
-              onclick="editingTypes[${i}].color='${c}';renderSettingCards()"></div>`
-          ).join('')}
-        </div>
-      </div>
-    </div>`).join('');
-}
-function addShiftType() {
-  editingTypes.push({
-    id:'s'+Date.now(), name:'新しいシフト', start:'20:00', end:'23:00',
-    color: COLOR_PALETTE[editingTypes.length % COLOR_PALETTE.length]
-  });
-  renderSettingCards();
-}
-function removeShiftType(i) { editingTypes.splice(i,1); renderSettingCards(); }
-function saveSettings() {
-  shiftTypes = JSON.parse(JSON.stringify(editingTypes));
-  save(); renderLegend(); renderCalendar();
-  document.getElementById('settingsOverlay').classList.remove('open');
-  showToast('✅ 設定を保存しました');
-}
-function closeSettingsOverlay(e) {
-  if (e && e.target!==document.getElementById('settingsOverlay')) return;
-  document.getElementById('settingsOverlay').classList.remove('open');
-}
-
-// ===== TIME PICKER =====
-function buildDrums() {
-  const dH = document.getElementById('drumH');
-  const dM = document.getElementById('drumM');
-  dH.innerHTML = `<div class="drum-pad"></div>`+
-    HOURS.map(h=>`<div class="drum-item">${h}</div>`).join('')+
-    `<div class="drum-pad"></div>`;
-  dM.innerHTML = `<div class="drum-pad"></div>`+
-    MINS.map(m=>`<div class="drum-item">${m}</div>`).join('')+
-    `<div class="drum-pad"></div>`;
-}
-function scrollDrumTo(drum, items, val) {
-  const idx = items.indexOf(String(val).padStart(2,'0'));
-  if (idx>=0) drum.scrollTop = idx*44;
-}
-function getDrumValue(drum, items) {
-  return items[Math.max(0,Math.min(Math.round(drum.scrollTop/44), items.length-1))];
-}
-let drumTimers = {};
-function onDrumScroll(w) {
-  clearTimeout(drumTimers[w]);
-  drumTimers[w] = setTimeout(()=>{
-    const drum = document.getElementById(`drum${w}`);
-    const items = w==='H' ? HOURS : MINS;
-    const idx = Math.round(drum.scrollTop/44);
-    drum.scrollTo({top:idx*44, behavior:'smooth'});
-    drum.querySelectorAll('.drum-item').forEach((el,i)=>el.classList.toggle('active',i===idx));
-  }, 80);
-}
-function openTimePicker(label, sub, current, cb) {
-  buildDrums();
-  document.getElementById('timePickerTitle').textContent = label;
-  document.getElementById('timePickerSub').textContent = sub;
-  tpCallback = cb;
-  const parts = (current||'22:00').split(':');
-  const hStr = String(parts[0]||'22').padStart(2,'0');
-  const mStr = parts[1]||'00';
-  const closestM = MINS.reduce((a,b)=>Math.abs(parseInt(b)-parseInt(mStr))<Math.abs(parseInt(a)-parseInt(mStr))?b:a);
-  setTimeout(()=>{
-    const dH = document.getElementById('drumH');
-    const dM = document.getElementById('drumM');
-    scrollDrumTo(dH, HOURS, hStr);
-    scrollDrumTo(dM, MINS, closestM);
-    const hIdx = HOURS.indexOf(hStr);
-    const mIdx = MINS.indexOf(closestM);
-    dH.querySelectorAll('.drum-item').forEach((el,i)=>el.classList.toggle('active',i===hIdx));
-    dM.querySelectorAll('.drum-item').forEach((el,i)=>el.classList.toggle('active',i===mIdx));
-  }, 60);
-  document.getElementById('timePickerOverlay').classList.add('open');
-}
-function confirmTimePicker() {
-  const h = getDrumValue(document.getElementById('drumH'), HOURS);
-  const m = getDrumValue(document.getElementById('drumM'), MINS);
-  document.getElementById('timePickerOverlay').classList.remove('open');
-  if (tpCallback) tpCallback(`${h}:${m}`);
-}
-
-// ===== PREVIEW =====
-function openPreview() {
-  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
-  document.getElementById('previewTitle').textContent =
-    `${currentYear}年${MONTH_NAMES[currentMonth]}月 シフト確認`;
-  const list = document.getElementById('previewList');
-  list.innerHTML = '';
-  let found = false;
+  const shifts = [];
   for (let d=1; d<=daysInMonth; d++) {
     const key = dk(currentYear, currentMonth+1, d);
     const sel = shiftData[key];
     if (!sel||sel.length===0) continue;
-    found = true;
-    const dow = new Date(currentYear, currentMonth, d).getDay();
-    const item = document.createElement('div');
-    item.className='preview-item';
-    const rows = sel.map(id=>{
+    sel.forEach(id => {
       const t = shiftTypes.find(x=>x.id===id);
-      if (!t) return '';
-      const time = t.end ? `${t.start}〜${t.end}` : `${t.start}〜`;
-      return `<div class="preview-shift-row" style="color:${t.color}">${t.name}　${time}</div>`;
-    }).join('');
-    item.innerHTML=`<div class="preview-date">${currentMonth+1}/${d}（${DAY_LABELS[dow]}）</div><div class="preview-shifts">${rows}</div>`;
-    list.appendChild(item);
+      if (t) shifts.push({ date:key, shiftId:t.id, name:t.name, start:t.start, end:t.end||'' });
+    });
   }
-  if (!found) list.innerHTML='<div class="preview-empty">まだシフトが入力されていません</div>';
-  document.getElementById('previewOverlay').classList.add('open');
-}
-function closePreview(e) {
-  if (e && e.target!==document.getElementById('previewOverlay')) return;
-  document.getElementById('previewOverlay').classList.remove('open');
+  // GETパラメータでJSONP送信（CORS完全回避）
+  const payload = encodeURIComponent(JSON.stringify({ castName:CAST_NAME, year:currentYear, month:currentMonth+1, shifts }));
+  const cbName = 'cb_save_' + Date.now();
+  const script = document.createElement('script');
+  window[cbName] = (data) => {
+    delete window[cbName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    if (data && data.status === 'ok') showToast('✅ 保存しました');
+    else showToast('❌ 保存エラー');
+  };
+  script.src = GAS_URL + '?action=save&data=' + payload + '&callback=' + cbName;
+  script.onerror = () => { showToast('❌ 通信エラー'); };
+  document.head.appendChild(script);
+  showToast('💾 保存中...');
 }
 
 // ===== SUBMIT (月全体を手動で再送信) =====
