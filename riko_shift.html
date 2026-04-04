@@ -285,7 +285,7 @@ async function loadFromGAS(){
 }
 
 // SAVE to GAS
-function saveToGAS(){
+async function saveToGAS(){
   const dim=new Date(Y,M+1,0).getDate();
   const shifts=[];
   for(let d=1;d<=dim;d++){
@@ -297,14 +297,24 @@ function saveToGAS(){
       if(t)shifts.push({date:k,shiftId:t.id,start:t.start,end:t.end||''});
     });
   }
-  const payload=encodeURIComponent(JSON.stringify({castName:CAST,year:Y,month:M+1,shifts}));
-  const cb='cbs_'+Date.now();
-  const s=document.createElement('script');
-  window[cb]=(r)=>{delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);if(r&&r.status==='ok')toast('✅ 保存しました');else toast('❌ 保存エラー')};
-  s.src=GAS+'?action=save&data='+payload+'&callback='+cb;
-  s.onerror=()=>{if(s.parentNode)s.parentNode.removeChild(s);toast('❌ 通信エラー')};
-  document.head.appendChild(s);
   toast('💾 保存中...');
+  try{
+    const payload=encodeURIComponent(JSON.stringify({castName:CAST,year:Y,month:M+1,shifts}));
+    const url=GAS+'?action=save&data='+payload;
+    const res=await fetch(url,{redirect:'follow'});
+    const text=await res.text();
+    toast('✅ 保存しました');
+  }catch(e){
+    console.error('save error:',e);
+    // fetchが失敗したらJSONPにフォールバック
+    const payload=encodeURIComponent(JSON.stringify({castName:CAST,year:Y,month:M+1,shifts}));
+    const cb='cbs_'+Date.now();
+    const s=document.createElement('script');
+    window[cb]=(r)=>{delete window[cb];if(s.parentNode)s.parentNode.removeChild(s);if(r&&r.status==='ok')toast('✅ 保存しました');else toast('❌ 保存エラー')};
+    s.src=GAS+'?action=save&data='+payload+'&callback='+cb;
+    s.onerror=()=>{if(s.parentNode)s.parentNode.removeChild(s);toast('❌ 通信エラー')};
+    document.head.appendChild(s);
+  }
 }
 
 // LEGEND
