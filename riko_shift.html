@@ -584,7 +584,7 @@ async function loadShiftFromGAS() {
   showToast('📡 読み込み中...');
   try {
     const url = `${GAS_URL}?castName=${encodeURIComponent(CAST_NAME)}&year=${currentYear}&month=${currentMonth+1}`;
-    const res = await fetch(url);
+    const res = await fetch(url, { redirect: 'follow' });
     const json = await res.json();
     if (json.status === 'ok' && Object.keys(json.shifts).length > 0) {
       shiftData = {};
@@ -970,6 +970,7 @@ async function pushShiftToGAS() {
   try {
     const res = await fetch(GAS_URL, {
       method: 'POST',
+      redirect: 'follow',
       body: JSON.stringify({ castName:CAST_NAME, year:currentYear, month:currentMonth+1, shifts })
     });
     const json = await res.json();
