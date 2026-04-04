@@ -508,7 +508,7 @@
 <script>
 // ===== CONFIG =====
 const CAST_NAME = 'rico';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzoLvEL0e5_BpwGl_EHCGAVKAUjmp8fSNuh_gb4cOOXhUFPeBkxDEoCEWrcCYtd2k5-oA/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzZWNfrGIhz_FfphnAXYbZtyBCi1Ma8K0zlYOFsg57BtSozvQ6uP-z6m2lPG9Y8nqDt9g/exec';
 const MAX_TEMPLATES = 5;
 
 const COLOR_PALETTE = [
@@ -583,10 +583,8 @@ function save() {
 async function loadShiftFromGAS() {
   showToast('📡 読み込み中...');
   try {
-    const url = `${GAS_URL}?castName=${encodeURIComponent(CAST_NAME)}&year=${currentYear}&month=${currentMonth+1}`;
-    const res = await fetch(url, { redirect: 'follow' });
-    const json = await res.json();
-    if (json.status === 'ok' && Object.keys(json.shifts).length > 0) {
+    const json = await jsonpFetch(`${GAS_URL}?castName=${encodeURIComponent(CAST_NAME)}&year=${currentYear}&month=${currentMonth+1}`);
+    if (json && json.status === 'ok' && Object.keys(json.shifts).length > 0) {
       shiftData = {};
       Object.entries(json.shifts).forEach(([date, arr]) => {
         shiftData[date] = arr.map(s => s.shiftId);
@@ -600,11 +598,34 @@ async function loadShiftFromGAS() {
       shiftData = JSON.parse(JSON.stringify(APRIL_2025));
     }
   } catch(e) {
+    console.error('loadShiftFromGAS error:', e);
     shiftData = JSON.parse(JSON.stringify(APRIL_2025));
   }
   renderLegend();
   renderCalendar();
   showToast('');
+}
+
+// JSONP方式でGASにGETリクエスト（CORS回避）
+function jsonpFetch(url) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'gasCallback_' + Date.now();
+    const script = document.createElement('script');
+    const timeout = setTimeout(() => {
+      delete window[cbName];
+      document.body.removeChild(script);
+      reject(new Error('timeout'));
+    }, 10000);
+    window[cbName] = (data) => {
+      clearTimeout(timeout);
+      delete window[cbName];
+      document.body.removeChild(script);
+      resolve(data);
+    };
+    script.src = url + '&callback=' + cbName;
+    script.onerror = () => { clearTimeout(timeout); reject(new Error('script error')); };
+    document.body.appendChild(script);
+  });
 }
 
 // ===== THEME =====
