@@ -508,7 +508,7 @@
 <script>
 // ===== CONFIG =====
 const CAST_NAME = 'rico';
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbzZWNfrGIhz_FfphnAXYbZtyBCi1Ma8K0zlYOFsg57BtSozvQ6uP-z6m2lPG9Y8nqDt9g/exec';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyrb8DaGn5kKGe3IZhmS-2hiciQ9eXt2onsy1bsTzzkh7dmDaibwTou-sI2gXPGJJdA/exec';
 const MAX_TEMPLATES = 5;
 
 const COLOR_PALETTE = [
@@ -975,8 +975,8 @@ async function submitShift() {
   await pushShiftToGAS();
 }
 
-// 自動保存（日付変更のたびに呼ばれる）
-async function pushShiftToGAS() {
+// 自動保存（日付変更のたびに呼ばれる）- フォーム送信方式
+function pushShiftToGAS() {
   const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
   const shifts = [];
   for (let d=1; d<=daysInMonth; d++) {
@@ -988,16 +988,30 @@ async function pushShiftToGAS() {
       if (t) shifts.push({ date:key, shiftId:t.id, name:t.name, start:t.start, end:t.end||'' });
     });
   }
-  try {
-    const res = await fetch(GAS_URL, {
-      method: 'POST',
-      redirect: 'follow',
-      body: JSON.stringify({ castName:CAST_NAME, year:currentYear, month:currentMonth+1, shifts })
-    });
-    const json = await res.json();
-    if (json.status === 'ok') showToast('✅ 保存しました');
-    else showToast('❌ 保存エラー');
-  } catch(e) { showToast('❌ 通信エラー'); }
+  // 隠しフォームでPOST送信（CORS回避）
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = GAS_URL;
+  form.target = 'gasTarget';
+  form.style.display = 'none';
+  const input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'payload';
+  input.value = JSON.stringify({ castName:CAST_NAME, year:currentYear, month:currentMonth+1, shifts });
+  form.appendChild(input);
+  document.body.appendChild(form);
+  // 非表示iframeをターゲットに
+  let iframe = document.getElementById('gasTarget');
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.name = 'gasTarget';
+    iframe.id = 'gasTarget';
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+  }
+  form.submit();
+  document.body.removeChild(form);
+  showToast('✅ 保存しました');
 }
 
 // ===== TOAST =====
